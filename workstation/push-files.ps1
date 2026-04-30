@@ -55,9 +55,9 @@ try {
 
   # Step 3: fetch SAS
   Write-Log INFO "Fetching SAS from $($config.keyVaultName) / $($config.secretName)..."
-  $sasSecret = Get-AzKeyVaultSecret -VaultName $config.keyVaultName -Name $config.secretName -AsPlainText
+  $sasSecret = (Get-AzKeyVaultSecret -VaultName $config.keyVaultName -Name $config.secretName -AsPlainText).TrimStart([char]0xFEFF).Trim()
   if ([string]::IsNullOrWhiteSpace($sasSecret)) { throw "SAS secret empty or missing" }
-  Write-Log INFO "SAS fetched (length: $($sasSecret.Length))"
+  Write-Log INFO "SAS fetched (length: $($sasSecret.Length), starts: $($sasSecret.Substring(0,[Math]::Min(5,$sasSecret.Length))))"
 
   # Step 4: enumerate new files
   if (-not (Test-Path $config.watchDirectory)) {

@@ -118,8 +118,8 @@ if ($existing) {
 } else {
   Write-Step "Registering scheduled task '$taskName'..." 'INFO'
   $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$pushScriptDest`""
-  $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 30) -RepetitionDuration ([System.TimeSpan]::MaxValue)
-  $principal = New-ScheduledTaskPrincipal -UserId $ServiceAccountUser -LogonType S4U -RunLevel Limited
+  $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 30)
+  $principal = New-ScheduledTaskPrincipal -UserId $ServiceAccountUser -LogonType Interactive -RunLevel Limited
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 5)
   Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
   Write-Step "Scheduled task registered to run every 30 minutes" 'OK'

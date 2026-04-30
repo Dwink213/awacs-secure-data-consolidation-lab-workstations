@@ -1,0 +1,13 @@
+# Generated deploy outputs — never commit
+out/
+
+# Claude Code session artifacts
+.claude/
+
+# Temp files
+*.tmp
+*.bak
+
+# Windows
+Thumbs.db
+desktop.ini
