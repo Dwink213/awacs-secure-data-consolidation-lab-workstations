@@ -26,7 +26,7 @@
 param(
   [Parameter(Mandatory=$true)][string]$ConfigPath,
   [Parameter(Mandatory=$true)][string]$CertPath,
-  [securestring]$CertPassword,
+  [string]$CertPassword,
   [string]$ServiceAccountUser = $env:USERNAME
 )
 
@@ -37,7 +37,7 @@ $logsDir = Join-Path $progDataDir 'logs'
 function Write-Step {
   param([string]$Message, [ValidateSet('OK','SKIP','WARN','FAIL','INFO')][string]$Status = 'INFO')
   $color = switch ($Status) { 'OK' {'Green'} 'SKIP' {'DarkGray'} 'WARN' {'Yellow'} 'FAIL' {'Red'} default {'Cyan'} }
-  Write-Host "[STEP] $Status — $Message" -ForegroundColor $color
+  Write-Host "[STEP] $Status  -  $Message" -ForegroundColor $color
 }
 
 # Step 1: ProgramData dirs
@@ -74,15 +74,16 @@ if ($existingCert) {
   Write-Step "Importing cert from $CertPath..." 'INFO'
   $ext = [System.IO.Path]::GetExtension($CertPath).ToLower()
   if ($ext -eq '.pfx') {
-    if ($null -eq $CertPassword) { throw "PFX requires -CertPassword" }
-    Import-PfxCertificate -FilePath $CertPath -CertStoreLocation Cert:\CurrentUser\My -Password $CertPassword -Exportable:$false | Out-Null
+    if ([string]::IsNullOrEmpty($CertPassword)) { throw "PFX requires -CertPassword" }
+    $securePfxPass = ConvertTo-SecureString $CertPassword -AsPlainText -Force
+    Import-PfxCertificate -FilePath $CertPath -CertStoreLocation Cert:\CurrentUser\My -Password $securePfxPass -Exportable:$false | Out-Null
   } elseif ($ext -eq '.pem') {
     # PEM import: convert to X509 cert and add via cert store API
     $pemText = Get-Content $CertPath -Raw
     $certBlock = ($pemText -split '-----BEGIN CERTIFICATE-----')[1] -split '-----END CERTIFICATE-----' | Select-Object -First 1
     $certBytes = [Convert]::FromBase64String(($certBlock -replace '\s',''))
     $tempPfx = Join-Path $env:TEMP "awacs-import-$(Get-Random).pfx"
-    # PEM with private key requires extracting the key block too — best handled by openssl externally
+    # PEM with private key requires extracting the key block too  -  best handled by openssl externally
     Write-Step "PEM with private key import requires openssl on this host." 'WARN'
     Write-Step "  Run: openssl pkcs12 -export -out tmp.pfx -in $CertPath" 'INFO'
     Write-Step "  Then re-run this bootstrap with -CertPath tmp.pfx" 'INFO'

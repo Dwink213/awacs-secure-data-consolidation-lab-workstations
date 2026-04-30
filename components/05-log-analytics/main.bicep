@@ -72,6 +72,10 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = if (hasRecei
 resource stalenessAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = if (hasReceiver) {
   name: '${prefix}-staleness-alert'
   location: location
+  dependsOn: [
+    workspace
+    actionGroup
+  ]
   properties: {
     description: 'Fires when any workstation has not produced a PutBlob event in 25h.'
     severity: 2

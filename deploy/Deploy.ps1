@@ -61,7 +61,7 @@ az account set --subscription $SubscriptionId | Out-Null
 $rgName = "$Prefix-rg"
 az group create --name $rgName --location $Region --tags project=awacs-secure-data-consolidation | Out-Null
 
-# Step 3: create SP with cert (imperative — see ADR-003)
+# Step 3: create SP with cert (imperative  -  see ADR-003)
 Write-Host "==> Creating Service Principal with cert..." -ForegroundColor Cyan
 $spName = "$Prefix-lab-sp-$(Get-Date -Format yyyyMMddHHmm)"
 $spJson = az ad sp create-for-rbac --name $spName --create-cert --years 0.25 --skip-assignment --output json | ConvertFrom-Json

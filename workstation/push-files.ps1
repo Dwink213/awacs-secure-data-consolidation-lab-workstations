@@ -91,7 +91,7 @@ try {
       $pushedThisRun += [pscustomobject]@{ path=$f.Path; sha256=$f.Sha; pushedUtc=(Get-Date).ToUniversalTime().ToString('o'); blobName=$blobName }
     } catch {
       $msg = Redact-Sas $_.Exception.Message
-      Write-Log ERROR "PUT FAIL: $blobName — $msg"
+      Write-Log ERROR "PUT FAIL: $blobName  -  $msg"
       # continue with next file rather than fail the whole run
     }
   }

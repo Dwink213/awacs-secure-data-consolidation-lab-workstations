@@ -12,8 +12,9 @@ Write-Host "C6.1  -  Consumer RBAC: Reader only"
 $sa = Get-AwacsStorageAccount -ResourceGroup $ResourceGroup
 $containerScope = "$($sa.id)/blobServices/default/containers/lab-files"
 $assignments = az role assignment list --scope $containerScope --output json | ConvertFrom-Json
-$readers = $assignments | Where-Object { $_.principalType -eq 'Group' -and $_.roleDefinitionName -eq 'Storage Blob Data Reader' }
-$nonReaderGroupAssignments = $assignments | Where-Object { $_.principalType -eq 'Group' -and $_.roleDefinitionName -ne 'Storage Blob Data Reader' }
+# Force @() to avoid PS5.1 unrolling single-match Where-Object to a bare PSObject (no .Count)
+$readers = @($assignments | Where-Object { $_.principalType -eq 'Group' -and $_.roleDefinitionName -eq 'Storage Blob Data Reader' })
+$nonReaderGroupAssignments = @($assignments | Where-Object { $_.principalType -eq 'Group' -and $_.roleDefinitionName -ne 'Storage Blob Data Reader' })
 
 $ok1 = Test-Assert "At least one Group has Storage Blob Data Reader" ($readers.Count -ge 1) "$($readers.Count)"
 $ok2 = Test-Assert "No Group has any non-Reader role on container" ($nonReaderGroupAssignments.Count -eq 0) "$($nonReaderGroupAssignments.Count) extra"

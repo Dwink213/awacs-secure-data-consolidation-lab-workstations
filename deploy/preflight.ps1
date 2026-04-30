@@ -74,7 +74,7 @@ Test-Step 'Subscription matches parameter' {
 } "Run: az account set --subscription $SubscriptionId"
 
 # 5. Has Owner OR (Contributor + UAA)
-# Use object ID — UPN lookup fails for external (@gmail.com) accounts in Graph.
+# Use object ID  -  UPN lookup fails for external (@gmail.com) accounts in Graph.
 Test-Step 'Identity has Owner OR Contributor+UAA' {
   $userId = az ad signed-in-user show --query id -o tsv 2>$null
   if (-not $userId) { return $false }
@@ -98,14 +98,14 @@ Test-Step "Prefix '$Prefix' is 3-8 lowercase alphanumeric" {
   return $Prefix -cmatch '^[a-z0-9]{3,8}$'
 } 'Use 3-8 lowercase letters and digits only.'
 
-# 8. RG availability — "not found" is the happy path; suppress EA so the catch
+# 8. RG availability  -  "not found" is the happy path; suppress EA so the catch
 #    block doesn't fire on a non-zero exit from az group show.
 Test-Step "Resource Group '$Prefix-rg' is available (does not exist or is empty)" {
   $prev = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
   $raw = az group show --name "$Prefix-rg" --output json 2>&1
   $ec  = $LASTEXITCODE
   $ErrorActionPreference = $prev
-  if ($ec -ne 0) { return $true }   # ResourceGroupNotFound → available
+  if ($ec -ne 0) { return $true }   # ResourceGroupNotFound ? available
   $rg = $raw | ConvertFrom-Json
   if ($null -eq $rg) { return $true }
   $ErrorActionPreference = 'SilentlyContinue'
@@ -114,7 +114,7 @@ Test-Step "Resource Group '$Prefix-rg' is available (does not exist or is empty)
   return ($null -eq $resources -or $resources.Count -eq 0)
 } "Either pick a different prefix or run teardown.ps1 -Prefix $Prefix first."
 
-# 9. SA name globally unique — use a random candidate; RG need not exist yet
+# 9. SA name globally unique  -  use a random candidate; RG need not exist yet
 Test-Step "Storage account name available globally" {
   $candidate = "${Prefix}sa$([guid]::NewGuid().ToString('N').Substring(0,4))"
   $check = az storage account check-name --name $candidate --output json 2>$null | ConvertFrom-Json
