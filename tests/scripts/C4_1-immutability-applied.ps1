@@ -8,7 +8,7 @@ param([Parameter(Mandatory=$true)][string]$ResourceGroup, [string]$Prefix)
 $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/_helpers.psm1" -Force
 
-Write-Host "C4.1 — Immutability policy applied"
+Write-Host "C4.1  -  Immutability policy applied"
 $sa = Get-AwacsStorageAccount -ResourceGroup $ResourceGroup
 $policy = az storage container immutability-policy show --account-name $sa.name --container-name 'lab-files' --output json 2>$null | ConvertFrom-Json
 $ok1 = Test-Assert "Policy resource exists on lab-files" ($null -ne $policy) "null"

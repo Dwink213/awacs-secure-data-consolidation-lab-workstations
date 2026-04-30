@@ -74,15 +74,17 @@ Test-Step 'Subscription matches parameter' {
 } "Run: az account set --subscription $SubscriptionId"
 
 # 5. Has Owner OR (Contributor + UAA)
+# Use object ID — UPN lookup fails for external (@gmail.com) accounts in Graph.
 Test-Step 'Identity has Owner OR Contributor+UAA' {
-  $upn = (az account show --output json | ConvertFrom-Json).user.name
-  $assignments = az role assignment list --assignee $upn --all --output json 2>$null | ConvertFrom-Json
+  $userId = az ad signed-in-user show --query id -o tsv 2>$null
+  if (-not $userId) { return $false }
+  $assignments = az role assignment list --assignee $userId --all --subscription $SubscriptionId --output json 2>$null | ConvertFrom-Json
   if ($null -eq $assignments) { return $false }
-  $hasOwner = $assignments | Where-Object { $_.roleDefinitionName -eq 'Owner' -and ($_.scope -eq "/subscriptions/$SubscriptionId" -or $_.scope -eq '/') }
+  $hasOwner = $assignments | Where-Object { $_.roleDefinitionName -eq 'Owner' }
   if ($hasOwner) { return $true }
   $hasContrib = $assignments | Where-Object { $_.roleDefinitionName -eq 'Contributor' }
-  $hasUAA = $assignments | Where-Object { $_.roleDefinitionName -eq 'User Access Administrator' }
-  return ($hasContrib -and $hasUAA)
+  $hasUAA    = $assignments | Where-Object { $_.roleDefinitionName -eq 'User Access Administrator' }
+  return ($null -ne $hasContrib -and $null -ne $hasUAA)
 } 'Grant your identity Owner on the subscription, or both Contributor + User Access Administrator.'
 
 # 6. Region valid
@@ -96,21 +98,28 @@ Test-Step "Prefix '$Prefix' is 3-8 lowercase alphanumeric" {
   return $Prefix -cmatch '^[a-z0-9]{3,8}$'
 } 'Use 3-8 lowercase letters and digits only.'
 
-# 8. RG availability
+# 8. RG availability — "not found" is the happy path; suppress EA so the catch
+#    block doesn't fire on a non-zero exit from az group show.
 Test-Step "Resource Group '$Prefix-rg' is available (does not exist or is empty)" {
-  $rg = az group show --name "$Prefix-rg" --output json 2>$null | ConvertFrom-Json
+  $prev = $ErrorActionPreference; $ErrorActionPreference = 'SilentlyContinue'
+  $raw = az group show --name "$Prefix-rg" --output json 2>&1
+  $ec  = $LASTEXITCODE
+  $ErrorActionPreference = $prev
+  if ($ec -ne 0) { return $true }   # ResourceGroupNotFound → available
+  $rg = $raw | ConvertFrom-Json
   if ($null -eq $rg) { return $true }
-  $resources = az resource list --resource-group "$Prefix-rg" --output json | ConvertFrom-Json
+  $ErrorActionPreference = 'SilentlyContinue'
+  $resources = az resource list --resource-group "$Prefix-rg" --output json 2>$null | ConvertFrom-Json
+  $ErrorActionPreference = $prev
   return ($null -eq $resources -or $resources.Count -eq 0)
 } "Either pick a different prefix or run teardown.ps1 -Prefix $Prefix first."
 
-# 9. SA name globally unique
+# 9. SA name globally unique — use a random candidate; RG need not exist yet
 Test-Step "Storage account name available globally" {
-  $unique4 = (az group show --name "$Prefix-rg" --output json 2>$null | ConvertFrom-Json)
-  # The unique4 hash uses RG ID; if RG doesn't exist yet, we approximate. Best-effort check.
-  $candidate = "${Prefix}sa$(([guid]::NewGuid().ToString('N').Substring(0,4)))"
+  $candidate = "${Prefix}sa$([guid]::NewGuid().ToString('N').Substring(0,4))"
   $check = az storage account check-name --name $candidate --output json 2>$null | ConvertFrom-Json
-  return $check.nameAvailable
+  if ($null -eq $check) { return $false }
+  return $check.nameAvailable -eq $true
 } 'Pick a different prefix.'
 
 if ($script:fails -gt 0) {

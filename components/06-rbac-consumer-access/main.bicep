@@ -9,12 +9,18 @@ param storageAccountName string
 @description('Container name (from component 01)')
 param containerName string
 
-// ba92f5b4-2d11-453d-a403-e96b0029c9fe == "Storage Blob Data Reader"
-var blobReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+// 2a2b9908-6ea1-4ae2-8e65-a410df84e7d1 == "Storage Blob Data Reader"
+// (ba92f5b4 is Contributor -- wrong role, caught by C6.1 test)
+var blobReaderRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')
+
+// existing reference so role assignment scope resolves to the correct subscription-scoped ID
+resource containerRef 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' existing = {
+  name: '${storageAccountName}/default/${containerName}'
+}
 
 resource readerAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(consumerGroupObjectId, blobReaderRoleId, storageAccountName, containerName)
-  scope: tenantResourceId('Microsoft.Storage/storageAccounts/blobServices/containers', storageAccountName, 'default', containerName)
+  scope: containerRef
   properties: {
     roleDefinitionId: blobReaderRoleId
     principalId: consumerGroupObjectId

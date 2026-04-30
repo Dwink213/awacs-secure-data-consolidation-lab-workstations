@@ -8,7 +8,7 @@ param([Parameter(Mandatory=$true)][string]$ResourceGroup, [string]$Prefix)
 $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/_helpers.psm1" -Force
 
-Write-Host "C6.1 — Consumer RBAC: Reader only"
+Write-Host "C6.1  -  Consumer RBAC: Reader only"
 $sa = Get-AwacsStorageAccount -ResourceGroup $ResourceGroup
 $containerScope = "$($sa.id)/blobServices/default/containers/lab-files"
 $assignments = az role assignment list --scope $containerScope --output json | ConvertFrom-Json

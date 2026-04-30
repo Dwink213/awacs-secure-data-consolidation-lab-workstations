@@ -77,7 +77,7 @@ resource stalenessAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-previ
     severity: 2
     enabled: true
     evaluationFrequency: 'PT1H'
-    windowSize: 'PT25H'
+    windowSize: 'P2D'
     scopes: [
       workspace.id
     ]
@@ -87,7 +87,7 @@ resource stalenessAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-previ
           query: '''
 StorageBlobLogs
 | where OperationName == "PutBlob"
-| extend hostname = tostring(split(tostring(parse_json(Properties).ObjectKey), "/")[2])
+| extend hostname = tostring(split(ObjectKey, "/")[0])
 | summarize lastSeen = max(TimeGenerated) by hostname
 | where lastSeen < ago(25h)
 '''

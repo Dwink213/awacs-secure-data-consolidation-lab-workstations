@@ -46,11 +46,12 @@ foreach ($sp in $sps) {
   az ad app delete --id $sp.appId | Out-Null
 }
 
-# 3. Remove resource lock(s)
+# 3. Remove resource lock(s) — use lock ID so it works for resource-level locks too
 Write-Host "==> Removing resource locks..." -ForegroundColor Cyan
 $locks = az lock list --resource-group $rgName --output json 2>$null | ConvertFrom-Json
 foreach ($l in $locks) {
-  az lock delete --name $l.name --resource-group $rgName | Out-Null
+  Write-Host "    Removing lock: $($l.name) ($($l.id))"
+  az lock delete --ids $l.id 2>&1 | Out-Null
 }
 
 # 4. Delete RG

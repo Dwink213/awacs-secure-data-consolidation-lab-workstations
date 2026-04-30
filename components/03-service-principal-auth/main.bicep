@@ -41,13 +41,18 @@ resource customRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
   }
 }
 
-// Construct the container scope ID
+// Construct the container scope ID (used only for guid() determinism, not as ARM scope)
 var containerScopeId = '${storageAccountId}/blobServices/default/containers/${containerName}'
+
+// existing reference so role assignment scope resolves to the correct subscription-scoped ID
+resource containerRef 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' existing = {
+  name: '${storageAccountName}/default/${containerName}'
+}
 
 // Assign custom role to SP at container scope.
 resource writeAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(servicePrincipalObjectId, customRole.id, containerScopeId)
-  scope: tenantResourceId('Microsoft.Storage/storageAccounts/blobServices/containers', storageAccountName, 'default', containerName)
+  scope: containerRef
   properties: {
     roleDefinitionId: customRole.id
     principalId: servicePrincipalObjectId
@@ -58,10 +63,16 @@ resource writeAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = 
 // Assign built-in Key Vault Secrets User to SP at the secret scope.
 // 4633458b-17de-408a-b874-0445c86b69e6 == "Key Vault Secrets User"
 var kvSecretsUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+var kvName = split(secretResourceId, '/')[8]
+var kvSecretName = split(secretResourceId, '/')[10]
+
+resource kvSecretRef 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
+  name: '${kvName}/${kvSecretName}'
+}
 
 resource kvAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(servicePrincipalObjectId, kvSecretsUserRoleId, secretResourceId)
-  scope: tenantResourceId('Microsoft.KeyVault/vaults/secrets', split(secretResourceId, '/')[8], split(secretResourceId, '/')[10])
+  scope: kvSecretRef
   properties: {
     roleDefinitionId: kvSecretsUserRoleId
     principalId: servicePrincipalObjectId

@@ -8,7 +8,7 @@ param([Parameter(Mandatory=$true)][string]$ResourceGroup, [string]$Prefix)
 $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/_helpers.psm1" -Force
 
-Write-Host "D6.3 — Bicep redeploy is idempotent"
+Write-Host "D6.3  -  Bicep redeploy is idempotent"
 if (-not $Prefix) { Write-Host "[SKIP] -Prefix required" -ForegroundColor Yellow; exit 0 }
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

@@ -15,7 +15,7 @@ param([Parameter(Mandatory=$true)][string]$ResourceGroup, [string]$Prefix)
 $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/_helpers.psm1" -Force
 
-Write-Host "T2.2 — Immutability blocks delete"
+Write-Host "T2.2  -  Immutability blocks delete"
 $sa = Get-AwacsStorageAccount -ResourceGroup $ResourceGroup
 $tmp = New-TemporaryFile
 "awacs-test-$(Get-Date -Format yyyyMMddHHmmss)" | Out-File $tmp.FullName

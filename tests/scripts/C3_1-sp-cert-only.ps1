@@ -8,7 +8,7 @@ param([Parameter(Mandatory=$true)][string]$ResourceGroup, [string]$Prefix)
 $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/_helpers.psm1" -Force
 
-Write-Host "C3.1 — SP: cert credentials only"
+Write-Host "C3.1  -  SP: cert credentials only"
 if (-not $Prefix) { Write-Host "[SKIP] -Prefix required to locate SP" -ForegroundColor Yellow; exit 0 }
 $sps = az ad sp list --display-name "$Prefix-lab-sp-" --output json | ConvertFrom-Json
 $ok1 = Test-Assert "Found SP matching '$Prefix-lab-sp-*'" ($sps.Count -ge 1) "$($sps.Count) SPs"
