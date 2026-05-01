@@ -1,12 +1,14 @@
 # STATUS.md — AWACS Secure Lab Backup
-**Last updated:** 2026-04-30
-**Updated by:** EOD capture agent (session: 2026-04-30 live deployment)
+**Last updated:** 2026-05-01
+**Updated by:** EOD capture agent (session: 2026-05-01 SAS expiry)
 
 ---
 
-## System State: LIVE ✅
+## System State: DEGRADED ⚠️
 
-The AWACS secure lab backup system is **deployed and operational** against Azure subscription `49521d08-4a34-4355-a069-919af69ad956`.
+The AWACS secure lab backup system is **deployed but backup pushes are failing.** SAS token expired ~2026-05-01T06:41Z. Every push attempt from DESKTOP-0DBOTVV is returning HTTP 403 on blob write. No alert fired — failure is silent.
+
+**Action required immediately:** Rotate SAS token (command in SAS Token State section below). System returns to LIVE once rotated and verified.
 
 ---
 
@@ -21,7 +23,7 @@ The AWACS secure lab backup system is **deployed and operational** against Azure
 | Service principal (`awdust-lab-sp`) | ✅ Working | Cert `BC9BE61910E9D83061AFBA8D06DBA03380B0876B`; cert-only auth |
 | Workstation bootstrap (`workstation/bootstrap.ps1`) | ✅ Working | DESKTOP-0DBOTVV: all 6 steps green |
 | Scheduled task (`AwacsBackupPush`) | ✅ Working | Every 30 min, Interactive logon, DESKTOP-0DBOTVV |
-| Push script (`workstation/push-files.ps1`) | ✅ Working | 78/78 files pushed 2026-04-30 03:01:16 |
+| Push script (`workstation/push-files.ps1`) | ⚠️ Failing | HTTP 403 on blob write — SAS token expired; rotation required |
 | Test battery (11/11 executable scripts) | ✅ Passing | Storage hardening, KV hardening, immutability, diag, consumer RBAC |
 | End-to-end cert → SAS → blob flow | ✅ Verified | REST PUT 201; 79 blobs confirmed in container |
 
@@ -84,11 +86,11 @@ The AWACS secure lab backup system is **deployed and operational** against Azure
 |------|-------|
 | KV secret name | `current-write-sas` |
 | Length | ~264–270 chars |
-| Expires | ~2026-05-01T06:41–06:43Z (24h from last regeneration) |
+| **Status** | **EXPIRED** — expired ~2026-05-01T06:41–06:43Z |
 | Permissions | `acw` (add/create/write) |
 | Rotation method | Manual — see `RUNBOOK.md` |
 
-**⚠️ Action required by 2026-05-01:** Rotate SAS before expiry. Run:
+**🚨 Action required NOW (2026-05-01):** Token is expired. Backups failing silently. Run rotation immediately:
 ```powershell
 az storage container generate-sas `
     --name lab-files `
@@ -135,5 +137,6 @@ Remove-Item $env:TEMP\sas.tmp, $env:TEMP\sas-nobom.tmp
 |---------|------|-------------|
 | Autonomous overnight run | 2026-04-30 | Full IaC + tests + docs authored |
 | Live deployment | 2026-04-30 | RG deployed, tests passing, bootstrap complete, 78/78 push verified |
+| SAS expiry / idle cron | 2026-05-01 | SAS expired; system DEGRADED; rotation pending; gap documented |
 
 Full session notes: `docs/session-notes/SESSION_2026-04-30.md`
