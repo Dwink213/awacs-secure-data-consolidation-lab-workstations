@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zero Trust Lab Data Consolidation — AWACS</title>
+  <meta name="description" content="Shared workstations. Sensitive data. Automated secure push to Azure with zero trust enforced at every step."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700;800&family=Figtree:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #060d1c;
+      --bg-card:      #0a1628;
+      --bg-card-alt:  #0d1e38;
+      --border:       #1e3a5f;
+      --border-muted: #122035;
+      --text-primary: #f1f5f9;
+      --text-secondary:#94a3b8;
+      --text-muted:   #64748b;
+      --text-dim:     #344158;
+
+      --c1: #ea580c;   /* orange  — workstation */
+      --c2: #ca8a04;   /* amber   — identity    */
+      --c3: #2563eb;   /* blue    — key vault   */
+      --c4: #16a34a;   /* green   — storage     */
+      --c5: #9333ea;   /* purple  — analyst     */
+
+      --c1l: #fdba74;
+      --c2l: #fde68a;
+      --c3l: #93c5fd;
+      --c4l: #86efac;
+      --c5l: #d8b4fe;
+
+      --font-display: 'Oxanium', sans-serif;
+      --font-body:    'Figtree', sans-serif;
+      --font-mono:    'Fira Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── GRID TEXTURE ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border-muted) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-muted) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── RADIAL GLOW ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(37,99,235,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(6,13,28,0.82);
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .nav-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+    .gh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .gh-btn:hover { border-color: #3b82f6; color: var(--text-primary); background: var(--bg-card-alt); }
+    .gh-btn svg { flex-shrink: 0; }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: 72px 0 56px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #3b82f6;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: #3b82f6;
+      opacity: 0.5;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 5vw, 54px);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #f1f5f9 30%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      max-width: 620px;
+      margin: 0 auto 32px;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* Repo metadata pills */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border: 1px solid var(--border-muted);
+      border-radius: 20px;
+      background: var(--bg-card);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .meta-pill .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: #1d4ed8;
+      border: 1px solid #2563eb;
+      border-radius: 8px;
+      color: #eff6ff;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .hero-cta:hover { background: #2563eb; border-color: #3b82f6; transform: translateY(-1px); }
+
+    /* ─── SECTION HEADERS ─── */
+    .section-label {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .section-label h2 {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 3vw, 32px);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .section-label p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-muted);
+    }
+    .section-divider span {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* ─── FLOW SECTION ─── */
+    .flow-section { padding: 24px 0 64px; }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      position: relative;
+    }
+
+    /* Connecting line behind the cards */
+    .flow-grid::before {
+      content: '';
+      position: absolute;
+      top: 68px;
+      left: calc(10% + 16px);
+      right: calc(10% + 16px);
+      height: 2px;
+      background: linear-gradient(90deg,
+        var(--c1) 0%,
+        var(--c2) 25%,
+        var(--c3) 50%,
+        var(--c4) 75%,
+        var(--c5) 100%
+      );
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    /* Arrows between cards */
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 56px;
+      gap: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .arrow-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-align: center;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 10px;
+      border: 1px solid;
+      line-height: 1.2;
+    }
+
+    .arrow-svg { opacity: 0.8; }
+
+    /* Step cards */
+    .step-card {
+      position: relative;
+      z-index: 2;
+      background: var(--bg-card);
+      border: 1px solid var(--border-muted);
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+      cursor: default;
+    }
+    .step-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .step-header {
+      padding: 14px 16px 10px;
+      position: relative;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .step-accent {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .step-icon {
+      font-size: 26px;
+      line-height: 1;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--text-primary);
+    }
+
+    .step-body {
+      padding: 14px 16px;
+    }
+
+    .step-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .step-zt-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .step-zt-value {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .step-zt-detail {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .step-divider {
+      height: 1px;
+      background: var(--border-muted);
+      margin: 12px 0;
+    }
+
+    /* Hover glow per card */
+    .step-card[data-step="1"]:hover { border-color: rgba(234,88,12,0.5); box-shadow: 0 12px 40px rgba(234,88,12,0.08); }
+    .step-card[data-step="2"]:hover { border-color: rgba(202,138,4,0.5);  box-shadow: 0 12px 40px rgba(202,138,4,0.08); }
+    .step-card[data-step="3"]:hover { border-color: rgba(37,99,235,0.5);  box-shadow: 0 12px 40px rgba(37,99,235,0.1); }
+    .step-card[data-step="4"]:hover { border-color: rgba(22,163,74,0.5);  box-shadow: 0 12px 40px rgba(22,163,74,0.08); }
+    .step-card[data-step="5"]:hover { border-color: rgba(147,51,234,0.5); box-shadow: 0 12px 40px rgba(147,51,234,0.08); }
+
+    /* ─── CHIP ROW ─── */
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 36px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .chip:hover { background: var(--bg-card-alt); }
+    .chip .chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─── WHAT IT SOLVES ─── */
+    .solves-section { padding: 0 0 64px; }
+
+    .solves-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .solves-card {
+      border: 1px solid var(--border-muted);
+      border-radius: 10px;
+      padding: 28px;
+      background: var(--bg-card);
+    }
+
+    .solves-card h3 {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .solves-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .solves-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .solves-list li span.icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ─── DEPLOY CTA ─── */
+    .deploy-section { padding: 0 0 72px; }
+
+    .deploy-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+      padding: 36px;
+      text-align: center;
+    }
+
+    .deploy-box h3 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 10px;
+    }
+
+    .deploy-box p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .code-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #020810;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 20px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #93c5fd;
+      margin-bottom: 24px;
+      max-width: 100%;
+      overflow-x: auto;
+      text-align: left;
+    }
+
+    .code-block .prompt { color: #4ade80; }
+
+    .deploy-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .deploy-link:hover { border-color: #3b82f6; color: var(--text-primary); background: var(--bg-card-alt); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border-muted);
+      padding: 28px 0;
+    }
+
+    .footer-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #3b82f6;
+    }
+
+    .footer-tagline {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .footer-right {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes lineGrow {
+      from { opacity: 0; transform: scaleX(0); }
+      to   { opacity: 0.35; transform: scaleX(1); }
+    }
+
+    .hero-eyebrow { animation: fadeUp 0.5s ease both; }
+    .hero h1      { animation: fadeUp 0.5s 0.1s ease both; }
+    .hero-sub     { animation: fadeUp 0.5s 0.2s ease both; }
+    .meta-row     { animation: fadeUp 0.5s 0.3s ease both; }
+    .hero-cta     { animation: fadeUp 0.5s 0.4s ease both; }
+
+    .step-card { animation: fadeUp 0.5s ease both; }
+    .step-card[data-step="1"] { animation-delay: 0.1s; }
+    .step-card[data-step="2"] { animation-delay: 0.2s; }
+    .step-card[data-step="3"] { animation-delay: 0.3s; }
+    .step-card[data-step="4"] { animation-delay: 0.4s; }
+    .step-card[data-step="5"] { animation-delay: 0.5s; }
+
+    .flow-grid::before {
+      animation: lineGrow 0.8s 0.5s ease both;
+      transform-origin: left center;
+    }
+
+    .flow-arrow { animation: fadeUp 0.4s ease both; }
+    .flow-arrow:nth-child(2) { animation-delay: 0.15s; }
+    .flow-arrow:nth-child(4) { animation-delay: 0.25s; }
+    .flow-arrow:nth-child(6) { animation-delay: 0.35s; }
+    .flow-arrow:nth-child(8) { animation-delay: 0.45s; }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 900px) {
+      .flow-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .flow-grid::before { display: none; }
+
+      .flow-arrow {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0 0 0 28px;
+        height: 40px;
+        align-items: center;
+      }
+
+      .arrow-svg { transform: rotate(90deg); }
+
+      .step-card { border-radius: 8px; }
+
+      .step-card[data-step="1"] { border-left: 3px solid var(--c1); }
+      .step-card[data-step="2"] { border-left: 3px solid var(--c2); }
+      .step-card[data-step="3"] { border-left: 3px solid var(--c3); }
+      .step-card[data-step="4"] { border-left: 3px solid var(--c4); }
+      .step-card[data-step="5"] { border-left: 3px solid var(--c5); }
+
+      .solves-grid { grid-template-columns: 1fr; }
+
+      .deploy-box { padding: 24px 20px; }
+    }
+
+    @media (max-width: 900px) and (min-width: 600px) {
+      .flow-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .flow-grid::before { display: none; }
+      .flow-arrow { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .hero { padding: 48px 0 40px; }
+      .nav-inner { padding: 0 16px; }
+      .wrap { padding: 0 16px; }
+      .code-block { font-size: 11px; padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="#">AWACS</a>
+      <div class="nav-right">
+        <a class="gh-btn"
+           href="https://github.com/Dwink213/awacs-secure-data-consolidation-lab-workstations"
+           target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
+              -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2
+              -3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64
+              -.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56
+              .82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2
+              0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-eyebrow">Zero Trust Architecture</div>
+      <h1>Secure Lab Data<br/>Consolidation</h1>
+      <p class="hero-sub">
+        Shared workstations. Sensitive data. Automated secure push to tamper-proof Azure cloud storage —
+        with zero trust enforced at every step. No manual actions. No shared credentials.
+      </p>
+      <div class="meta-row">
+        <div class="meta-pill">
+          <span class="dot" style="background:#4ade80;"></span>
+          Started April 29, 2026
+        </div>
+        <div class="meta-pill">
+          <span class="dot" style="background:#60a5fa;"></span>
+          Updated May 6, 2026
+        </div>
+        <div class="meta-pill">
+          <span class="dot" style="background:#c084fc;"></span>
+          9 commits
+        </div>
+        <div class="meta-pill">
+          <span class="dot" style="background:#fb923c;"></span>
+          AWACS Methodology
+        </div>
+      </div>
+      <a class="hero-cta"
+         href="https://github.com/Dwink213/awacs-secure-data-consolidation-lab-workstations"
+         target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
+            -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2
+            -3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64
+            -.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56
+            .82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2
+            0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── FLOW ─── -->
+  <section class="flow-section">
+    <div class="wrap">
+      <div class="section-divider"><span>How It Works</span></div>
+      <div class="section-label">
+        <h2>Five Steps. Zero Trust.</h2>
+        <p>Every credential is time-limited. Every action is logged. Every boundary is enforced.</p>
+      </div>
+
+      <div class="flow-grid">
+
+        <!-- STEP 1 -->
+        <div class="step-card" data-step="1">
+          <div class="step-header">
+            <div class="step-accent" style="background:var(--c1);"></div>
+            <div class="step-num">STEP 01</div>
+            <span class="step-icon">🖥</span>
+            <div class="step-title">Lab Workstation</div>
+          </div>
+          <div class="step-body">
+            <p class="step-desc">Analyst saves data files. A scheduled task fires every 30 minutes automatically — no manual action required.</p>
+            <div class="step-divider"></div>
+            <div class="step-zt-label" style="color:var(--c1);">On-Prem · Low Trust</div>
+            <div class="step-zt-value" style="color:var(--c1l);">No admin rights</div>
+            <div class="step-zt-detail">Service account only<br/>Cert stored in OS cert store</div>
+          </div>
+        </div>
+
+        <!-- ARROW 1→2 -->
+        <div class="flow-arrow">
+          <div class="arrow-label" style="color:var(--c1l);border-color:rgba(234,88,12,0.4);background:rgba(234,88,12,0.06);">TLS 1.2+</div>
+          <svg class="arrow-svg" width="18" height="12" viewBox="0 0 18 12">
+            <path d="M0 6h14M10 2l6 4-6 4" stroke="#ea580c" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+          </svg>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-card" data-step="2">
+          <div class="step-header">
+            <div class="step-accent" style="background:var(--c2);"></div>
+            <div class="step-num">STEP 02</div>
+            <span class="step-icon">🔐</span>
+            <div class="step-title">Identity Check</div>
+          </div>
+          <div class="step-body">
+            <p class="step-desc">SP certificate proves machine identity to Azure Entra ID. Private key never leaves the workstation — JWT signed in-place.</p>
+            <div class="step-divider"></div>
+            <div class="step-zt-label" style="color:var(--c2);">Cert Only · No Password</div>
+            <div class="step-zt-value" style="color:var(--c2l);">Private key never leaves</div>
+            <div class="step-zt-detail">Access token: 1h lifetime<br/>Revocable independently</div>
+          </div>
+        </div>
+
+        <!-- ARROW 2→3 -->
+        <div class="flow-arrow">
+          <div class="arrow-label" style="color:var(--c2l);border-color:rgba(202,138,4,0.4);background:rgba(202,138,4,0.06);">Token (1h)</div>
+          <svg class="arrow-svg" width="18" height="12" viewBox="0 0 18 12">
+            <path d="M0 6h14M10 2l6 4-6 4" stroke="#ca8a04" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+          </svg>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-card" data-step="3">
+          <div class="step-header">
+            <div class="step-accent" style="background:var(--c3);"></div>
+            <div class="step-num">STEP 03</div>
+            <span class="step-icon">🔑</span>
+            <div class="step-title">Key Vault</div>
+          </div>
+          <div class="step-body">
+            <p class="step-desc">Token unlocks today's write-only SAS token from Key Vault. SAS expires every 24 hours and rotates automatically.</p>
+            <div class="step-divider"></div>
+            <div class="step-zt-label" style="color:var(--c3);">Azure · High Trust</div>
+            <div class="step-zt-value" style="color:var(--c3l);">Write-only SAS: sp=acw</div>
+            <div class="step-zt-detail">No read · No list · No delete<br/>Rotated daily, auto-expired</div>
+          </div>
+        </div>
+
+        <!-- ARROW 3→4 -->
+        <div class="flow-arrow">
+          <div class="arrow-label" style="color:var(--c3l);border-color:rgba(37,99,235,0.4);background:rgba(37,99,235,0.06);">Write-Only SAS</div>
+          <svg class="arrow-svg" width="18" height="12" viewBox="0 0 18 12">
+            <path d="M0 6h14M10 2l6 4-6 4" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+          </svg>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-card" data-step="4">
+          <div class="step-header">
+            <div class="step-accent" style="background:var(--c4);"></div>
+            <div class="step-num">STEP 04</div>
+            <span class="step-icon">🔒</span>
+            <div class="step-title">Secure Storage</div>
+          </div>
+          <div class="step-body">
+            <p class="step-desc">File written once. Azure WORM policy locks it for 90 days. Even the storage owner cannot delete it before the lock expires.</p>
+            <div class="step-divider"></div>
+            <div class="step-zt-label" style="color:var(--c4);">Immutable · Audited</div>
+            <div class="step-zt-value" style="color:var(--c4l);">Azure-enforced retention</div>
+            <div class="step-zt-detail">Versioning + soft delete on<br/>Every write logged to Log Analytics</div>
+          </div>
+        </div>
+
+        <!-- ARROW 4→5 -->
+        <div class="flow-arrow">
+          <div class="arrow-label" style="color:var(--c4l);border-color:rgba(22,163,74,0.4);background:rgba(22,163,74,0.06);">Read-Only RBAC</div>
+          <svg class="arrow-svg" width="18" height="12" viewBox="0 0 18 12">
+            <path d="M0 6h14M10 2l6 4-6 4" stroke="#16a34a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+          </svg>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-card" data-step="5">
+          <div class="step-header">
+            <div class="step-accent" style="background:var(--c5);"></div>
+            <div class="step-num">STEP 05</div>
+            <span class="step-icon">👤</span>
+            <div class="step-title">Analyst Access</div>
+          </div>
+          <div class="step-body">
+            <p class="step-desc">MFA-authenticated individual identity. Read-only RBAC enforced at the platform layer — immutability blocks delete even if RBAC misconfigured.</p>
+            <div class="step-divider"></div>
+            <div class="step-zt-label" style="color:var(--c5);">Med Trust · Logged</div>
+            <div class="step-zt-value" style="color:var(--c5l);">Cannot write or delete</div>
+            <div class="step-zt-detail">Read log → Log Analytics<br/>Immutability blocks any override</div>
+          </div>
+        </div>
+
+      </div><!-- /flow-grid -->
+
+      <!-- Chip row -->
+      <div class="chip-row">
+        <div class="chip"><span class="chip-dot" style="background:#60a5fa;"></span><span style="color:#93c5fd;">0 Passwords</span></div>
+        <div class="chip"><span class="chip-dot" style="background:#fb923c;"></span><span style="color:#fdba74;">Write-Only Access</span></div>
+        <div class="chip"><span class="chip-dot" style="background:#4ade80;"></span><span style="color:#86efac;">90-Day WORM</span></div>
+        <div class="chip"><span class="chip-dot" style="background:#c084fc;"></span><span style="color:#d8b4fe;">100% Logged</span></div>
+        <div class="chip"><span class="chip-dot" style="background:#fb7185;"></span><span style="color:#fda4af;">Cert-Only Auth</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── WHAT IT SOLVES ─── -->
+  <section class="solves-section">
+    <div class="wrap">
+      <div class="section-divider"><span>Problem &amp; Solution</span></div>
+      <div class="section-label">
+        <h2>What This Solves</h2>
+        <p>Shared lab environments are an unsolved data governance problem. This changes that.</p>
+      </div>
+      <div class="solves-grid">
+        <div class="solves-card" style="border-color:rgba(248,113,113,0.25);">
+          <h3 style="color:#f87171;">Before — The Problem</h3>
+          <ul class="solves-list">
+            <li><span class="icon">❌</span>Sensitive files leave via USB, email, or shared drives</li>
+            <li><span class="icon">❌</span>No audit trail of who accessed or copied what</li>
+            <li><span class="icon">❌</span>Shared login credentials — no individual accountability</li>
+            <li><span class="icon">❌</span>Data can be altered or deleted after collection</li>
+            <li><span class="icon">❌</span>Manual process — dependent on analyst compliance</li>
+          </ul>
+        </div>
+        <div class="solves-card" style="border-color:rgba(74,222,128,0.25);">
+          <h3 style="color:#4ade80;">After — This System</h3>
+          <ul class="solves-list">
+            <li><span class="icon">✅</span>Automated push every 30 minutes — no human in the loop</li>
+            <li><span class="icon">✅</span>Every auth event, file write, and access logged in Azure</li>
+            <li><span class="icon">✅</span>Certificate auth — individual machine identity, no shared secrets</li>
+            <li><span class="icon">✅</span>WORM-locked for 90 days — tamper-proof by platform policy</li>
+            <li><span class="icon">✅</span>Pull-down deployable — one command, no manual portal steps</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DEPLOY ─── -->
+  <section class="deploy-section">
+    <div class="wrap">
+      <div class="section-divider"><span>Deploy It</span></div>
+      <div class="deploy-box">
+        <h3>Pull-Down Deployable</h3>
+        <p>Clone the repo, run one command. All Azure resources created, workstations bootstrapped, no manual portal steps.</p>
+        <div class="code-block">
+          <span class="prompt">$&gt;</span>
+          git clone https://github.com/Dwink213/awacs-secure-data-consolidation-lab-workstations.git
+          <span style="color:var(--text-dim);">&amp;&amp;</span>
+          .\Deploy.ps1
+        </div>
+        <br/>
+        <a class="deploy-link"
+           href="https://github.com/Dwink213/awacs-secure-data-consolidation-lab-workstations"
+           target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+              0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52
+              -.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2
+              -3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64
+              -.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56
+              .82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2
+              0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          View Full Repository
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-brand">AWACS</span>
+      <span class="footer-tagline">Never Trust · Always Verify · Enforce at Every Boundary</span>
+      <span class="footer-right">awacs.ai · Zero Trust Architecture</span>
+    </div>
+  </footer>
+
+</body>
+</html>
