@@ -1,0 +1,271 @@
+<svg width="1200" height="628" viewBox="0 0 1200 628" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="26%" cy="50%" r="80%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#0d2040"/>
+      <stop offset="100%" stop-color="#040c1a"/>
+    </radialGradient>
+    <pattern id="dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#ffffff" opacity="0.055"/>
+    </pattern>
+    <clipPath id="lhalf">
+      <rect x="0" y="0" width="619" height="628"/>
+    </clipPath>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="628" fill="url(#bg)"/>
+  <rect width="1200" height="628" fill="url(#dots)"/>
+
+  <!-- Center divider -->
+  <line x1="620" y1="0" x2="620" y2="628" stroke="#071425" stroke-width="2"/>
+
+  <!-- ============================================ -->
+  <!-- LEFT HALF: Concentric Trust Ring Diagram     -->
+  <!-- Center: (310, 314)                           -->
+  <!-- ============================================ -->
+
+  <!-- Ring 5: Untrusted Internet -->
+  <circle cx="310" cy="314" r="275"
+          fill="#dc2626" fill-opacity="0.04"
+          stroke="#dc2626" stroke-width="1.5" stroke-opacity="0.28"
+          clip-path="url(#lhalf)"/>
+
+  <!-- Ring 4: Low Trust / Lab Workstation -->
+  <circle cx="310" cy="314" r="215"
+          fill="#ea580c" fill-opacity="0.05"
+          stroke="#ea580c" stroke-width="1.5" stroke-opacity="0.42"/>
+
+  <!-- Ring 3: Identity Verification / TLS -->
+  <circle cx="310" cy="314" r="158"
+          fill="#ca8a04" fill-opacity="0.05"
+          stroke="#ca8a04" stroke-width="1.5" stroke-opacity="0.52"/>
+
+  <!-- Ring 2: Azure Cloud Boundary -->
+  <circle cx="310" cy="314" r="106"
+          fill="#2563eb" fill-opacity="0.08"
+          stroke="#2563eb" stroke-width="2" stroke-opacity="0.70"
+          filter="url(#glow)"/>
+
+  <!-- Ring 1: High Trust Zone -->
+  <circle cx="310" cy="314" r="60"
+          fill="#16a34a" fill-opacity="0.12"
+          stroke="#16a34a" stroke-width="2.5" stroke-opacity="0.82"
+          filter="url(#glow)"/>
+
+  <!-- Center: Protected Data -->
+  <circle cx="310" cy="314" r="24"
+          fill="#1d4ed8" fill-opacity="0.88"
+          stroke="#60a5fa" stroke-width="1.5"
+          filter="url(#glow)"/>
+
+  <!-- Padlock icon at center -->
+  <path d="M305.5,314 L305.5,309 Q310,304.5 314.5,309 L314.5,314"
+        fill="none" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.92"/>
+  <rect x="303" y="314" width="14" height="9" rx="1.5" fill="white" opacity="0.92"/>
+  <circle cx="310" cy="317.5" r="1.5" fill="#1d4ed8"/>
+  <rect x="309" y="319" width="2" height="2.5" fill="#1d4ed8"/>
+
+  <!-- Zone Labels -->
+  <text x="310" y="49" text-anchor="middle"
+        fill="#f87171" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" font-weight="700" letter-spacing="1.8" opacity="0.78">UNTRUSTED INTERNET  ·  Z3</text>
+
+  <text x="310" y="107" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" font-weight="700" letter-spacing="1.4" opacity="0.88">LOW TRUST  ·  LAB WORKSTATION  ·  Z1</text>
+
+  <text x="310" y="163" text-anchor="middle"
+        fill="#fbbf24" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" font-weight="700" letter-spacing="1.4" opacity="0.88">IDENTITY VERIFICATION  ·  TLS ONLY</text>
+
+  <text x="310" y="215" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" font-weight="700" letter-spacing="1.2" opacity="0.95">AZURE CLOUD BOUNDARY  ·  Z4–Z7</text>
+
+  <text x="310" y="261" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" font-weight="700" letter-spacing="1.2" opacity="0.95">HIGH TRUST ZONE</text>
+
+  <text x="310" y="352" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8.5" font-weight="700" letter-spacing="3" opacity="0.85">DATA</text>
+
+  <!-- Component Callout: [1] Scheduled Task on Ring 4, left -->
+  <circle cx="103" cy="258" r="3" fill="#fb923c" opacity="0.85"/>
+  <line x1="103" y1="258" x2="65" y2="242" stroke="#fb923c" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="62" y="232" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Scheduled Task</text>
+  <text x="62" y="243" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="9">push-files.ps1</text>
+
+  <!-- Component Callout: [2] SP Cert on Ring 4, bottom-left -->
+  <circle cx="176" cy="451" r="3" fill="#fb923c" opacity="0.85"/>
+  <line x1="176" y1="451" x2="142" y2="470" stroke="#fb923c" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="100" y="474" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="9">SP Cert</text>
+  <text x="100" y="485" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="9">(key never leaves)</text>
+
+  <!-- Component Callout: [3] Entra ID on Ring 3, bottom -->
+  <circle cx="210" cy="468" r="3" fill="#fbbf24" opacity="0.85"/>
+  <line x1="210" y1="471" x2="210" y2="488" stroke="#fbbf24" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="210" y="500" text-anchor="middle"
+        fill="#fde68a" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Entra ID Token</text>
+  <text x="210" y="511" text-anchor="middle"
+        fill="#fde68a" font-family="'Segoe UI',Arial,sans-serif" font-size="9">(1h access token)</text>
+
+  <!-- Component Callout: [4] Key Vault on Ring 2, upper-right -->
+  <circle cx="410" cy="278" r="3" fill="#60a5fa" opacity="0.85"/>
+  <line x1="413" y1="276" x2="435" y2="260" stroke="#60a5fa" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="473" y="253" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Key Vault Secret</text>
+  <text x="473" y="264" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Daily SAS (24h)</text>
+
+  <!-- Component Callout: [5] WORM on Ring 1, upper-right -->
+  <circle cx="362" cy="284" r="3" fill="#4ade80" opacity="0.85"/>
+  <line x1="365" y1="282" x2="385" y2="266" stroke="#4ade80" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="419" y="258" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif" font-size="9">WORM · 90d</text>
+  <text x="419" y="269" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Immutable Lock</text>
+
+  <!-- Component Callout: [6] Log Analytics on Ring 2, lower-right -->
+  <circle cx="378" cy="395" r="3" fill="#60a5fa" opacity="0.85"/>
+  <line x1="381" y1="396" x2="402" y2="408" stroke="#60a5fa" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="446" y="404" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="9">Log Analytics</text>
+  <text x="446" y="415" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="9">(no WS write role)</text>
+
+  <!-- Left half bottom tagline -->
+  <text x="310" y="607" text-anchor="middle"
+        fill="#1e3a5f" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9" letter-spacing="2.5">NEVER TRUST  ·  ALWAYS VERIFY  ·  ENFORCE AT EVERY BOUNDARY</text>
+
+  <!-- ============================================ -->
+  <!-- RIGHT HALF: Zero Trust Properties Panel      -->
+  <!-- ============================================ -->
+
+  <!-- Panel tint -->
+  <rect x="622" y="0" width="578" height="628" fill="#040c1a" fill-opacity="0.25"/>
+
+  <!-- Header -->
+  <text x="911" y="62" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="27" font-weight="700" letter-spacing="-0.3">ZERO TRUST</text>
+  <text x="911" y="86" text-anchor="middle"
+        fill="#3b82f6" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="14" font-weight="300" letter-spacing="5">BY  DESIGN</text>
+
+  <line x1="638" y1="102" x2="1178" y2="102" stroke="#0e2040" stroke-width="1"/>
+  <text x="911" y="118" text-anchor="middle"
+        fill="#1e3a5f" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" letter-spacing="0.5">Secure Lab Data Consolidation  ·  AWACS Methodology</text>
+  <line x1="638" y1="130" x2="1178" y2="130" stroke="#0e2040" stroke-width="1"/>
+
+  <!-- CARD 1: Time-Bounded Credentials -->
+  <rect x="636" y="140" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="140" width="4" height="68" rx="2" fill="#3b82f6"/>
+  <rect x="648" y="149" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="180" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x23F1;</text>
+  <text x="695" y="161" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">Time-Bounded Credentials</text>
+  <text x="695" y="177" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">SAS tokens 24h  ·  Access tokens 1h  ·  SP certificates 90d</text>
+  <text x="695" y="193" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">All credentials auto-expire — no permanent standing access.</text>
+
+  <!-- CARD 2: Write-Only Access -->
+  <rect x="636" y="216" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="216" width="4" height="68" rx="2" fill="#ea580c"/>
+  <rect x="648" y="225" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="256" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x1F510;</text>
+  <text x="695" y="237" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">Write-Only Workstation Access</text>
+  <text x="695" y="253" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">SAS flags sp=acw — create and write only. No read. No list. No delete.</text>
+  <text x="695" y="269" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">The lab PC is blind to what it already wrote.</text>
+
+  <!-- CARD 3: WORM Immutable Storage -->
+  <rect x="636" y="292" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="292" width="4" height="68" rx="2" fill="#16a34a"/>
+  <rect x="648" y="301" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="332" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x1F512;</text>
+  <text x="695" y="313" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">WORM Immutable Storage</text>
+  <text x="695" y="329" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Azure time-based retention: 90-day lock. Platform-enforced.</text>
+  <text x="695" y="345" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Storage owner cannot delete before lock expires. No override.</text>
+
+  <!-- CARD 4: Tamper-Evident Audit -->
+  <rect x="636" y="368" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="368" width="4" height="68" rx="2" fill="#9333ea"/>
+  <rect x="648" y="377" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="408" text-anchor="middle"
+        fill="#c084fc" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x1F4CB;</text>
+  <text x="695" y="389" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">Tamper-Evident Audit Trail</text>
+  <text x="695" y="405" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Log Analytics workspace — workstation SP has no write role on logs.</text>
+  <text x="695" y="421" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Every auth event, KV access, and blob write recorded out-of-band.</text>
+
+  <!-- CARD 5: Certificate Auth -->
+  <rect x="636" y="444" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="444" width="4" height="68" rx="2" fill="#ca8a04"/>
+  <rect x="648" y="453" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="484" text-anchor="middle"
+        fill="#fbbf24" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x1F511;</text>
+  <text x="695" y="465" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">Certificate Authentication — No Passwords</text>
+  <text x="695" y="481" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">JWT assertion signed in-place. Private key never leaves the workstation.</text>
+  <text x="695" y="497" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">No shared secret in flight. Cert revocable independently of data.</text>
+
+  <!-- CARD 6: Least Privilege -->
+  <rect x="636" y="520" width="534" height="68" rx="4"
+        fill="#070f1e" stroke="#0e2748" stroke-width="1"/>
+  <rect x="636" y="520" width="4" height="68" rx="2" fill="#dc2626"/>
+  <rect x="648" y="529" width="36" height="50" rx="3" fill="#0a1a30"/>
+  <text x="666" y="560" text-anchor="middle"
+        fill="#f87171" font-family="'Segoe UI',Arial,sans-serif" font-size="19">&#x26D4;</text>
+  <text x="695" y="541" fill="#e2e8f0"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="12" font-weight="600">Least Privilege Everywhere</text>
+  <text x="695" y="557" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">No ARM role · No KV list · No storage key · No admin on workstation.</text>
+  <text x="695" y="573" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Account key auth disabled. Every scope is the minimum required.</text>
+
+  <!-- Footer right -->
+  <line x1="638" y1="601" x2="1178" y2="601" stroke="#0a1628" stroke-width="1"/>
+  <text x="648" y="617" fill="#2563eb"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="1.5">AWACS</text>
+  <text x="693" y="617" fill="#0e2040"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="10"> · awacs.ai</text>
+  <text x="911" y="617" text-anchor="middle"
+        fill="#0e2040" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="9.5" letter-spacing="2.5">NEVER TRUST  ·  ALWAYS VERIFY</text>
+  <text x="1170" y="617" text-anchor="end"
+        fill="#0e2040" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10">Zero Trust Architecture</text>
+
+</svg>

@@ -1,0 +1,201 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="53%" r="75%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#0d2040"/>
+      <stop offset="100%" stop-color="#040c1a"/>
+    </radialGradient>
+    <pattern id="dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#ffffff" opacity="0.055"/>
+    </pattern>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <rect width="1080" height="1080" fill="url(#dots)"/>
+
+  <!-- ============================================ -->
+  <!-- HEADER                                       -->
+  <!-- ============================================ -->
+  <text x="540" y="76" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="56" font-weight="700" letter-spacing="-1">ZERO TRUST</text>
+  <text x="540" y="104" text-anchor="middle"
+        fill="#3b82f6" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="21" font-weight="300" letter-spacing="9">BY  DESIGN</text>
+  <line x1="60" y1="119" x2="1020" y2="119" stroke="#0e2040" stroke-width="1.5"/>
+  <text x="540" y="136" text-anchor="middle"
+        fill="#1e3a5f" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" letter-spacing="1">Secure Lab Data Consolidation  ·  AWACS Methodology  ·  Azure Zero Trust</text>
+  <line x1="60" y1="148" x2="1020" y2="148" stroke="#071425" stroke-width="1"/>
+
+  <!-- ============================================ -->
+  <!-- CONCENTRIC TRUST RINGS — Center: (540, 570)  -->
+  <!-- ============================================ -->
+
+  <!-- Ring 5: Untrusted Internet -->
+  <circle cx="540" cy="570" r="420"
+          fill="#dc2626" fill-opacity="0.04"
+          stroke="#dc2626" stroke-width="2" stroke-opacity="0.28"/>
+
+  <!-- Ring 4: Low Trust / Lab Workstation -->
+  <circle cx="540" cy="570" r="328"
+          fill="#ea580c" fill-opacity="0.05"
+          stroke="#ea580c" stroke-width="2" stroke-opacity="0.42"/>
+
+  <!-- Ring 3: Identity Verification / TLS -->
+  <circle cx="540" cy="570" r="241"
+          fill="#ca8a04" fill-opacity="0.06"
+          stroke="#ca8a04" stroke-width="2" stroke-opacity="0.52"/>
+
+  <!-- Ring 2: Azure Cloud Boundary -->
+  <circle cx="540" cy="570" r="162"
+          fill="#2563eb" fill-opacity="0.08"
+          stroke="#2563eb" stroke-width="2.5" stroke-opacity="0.70"
+          filter="url(#glow)"/>
+
+  <!-- Ring 1: High Trust Zone -->
+  <circle cx="540" cy="570" r="92"
+          fill="#16a34a" fill-opacity="0.12"
+          stroke="#16a34a" stroke-width="3" stroke-opacity="0.82"
+          filter="url(#glow)"/>
+
+  <!-- Center: Protected Data -->
+  <circle cx="540" cy="570" r="37"
+          fill="#1d4ed8" fill-opacity="0.88"
+          stroke="#60a5fa" stroke-width="2"
+          filter="url(#glow)"/>
+
+  <!-- Padlock icon at center -->
+  <path d="M534,570 L534,562 Q540,555 546,562 L546,570"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.92"/>
+  <rect x="530" y="570" width="20" height="14" rx="2" fill="white" opacity="0.92"/>
+  <circle cx="540" cy="575" r="2.5" fill="#1d4ed8"/>
+  <rect x="539" y="577" width="2" height="4" fill="#1d4ed8"/>
+
+  <!-- ============================================ -->
+  <!-- ZONE LABELS                                  -->
+  <!-- ============================================ -->
+
+  <text x="540" y="160" text-anchor="middle"
+        fill="#f87171" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="700" letter-spacing="2" opacity="0.78">UNTRUSTED INTERNET  ·  Z3</text>
+
+  <text x="540" y="252" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="700" letter-spacing="1.6" opacity="0.88">LOW TRUST  ·  LAB WORKSTATION  ·  Z1</text>
+
+  <text x="540" y="335" text-anchor="middle"
+        fill="#fbbf24" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="700" letter-spacing="1.6" opacity="0.88">IDENTITY VERIFICATION  ·  TLS ONLY</text>
+
+  <text x="540" y="418" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="700" letter-spacing="1.4" opacity="0.95">AZURE CLOUD BOUNDARY  ·  Z4–Z7</text>
+
+  <text x="540" y="485" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="700" letter-spacing="1.4" opacity="0.95">HIGH TRUST ZONE</text>
+
+  <text x="540" y="623" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="11" font-weight="700" letter-spacing="4" opacity="0.85">DATA</text>
+
+  <!-- ============================================ -->
+  <!-- COMPONENT CALLOUT NODES                      -->
+  <!-- ============================================ -->
+
+  <!-- [1] Scheduled Task: Ring 4 left -->
+  <circle cx="224" cy="485" r="4" fill="#fb923c" opacity="0.85"/>
+  <line x1="224" y1="485" x2="166" y2="460" stroke="#fb923c" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="162" y="445" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Scheduled Task</text>
+  <text x="162" y="461" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="13">push-files.ps1</text>
+
+  <!-- [2] SP Cert: Ring 4 lower-left -->
+  <circle cx="335" cy="779" r="4" fill="#fb923c" opacity="0.85"/>
+  <line x1="335" y1="779" x2="284" y2="808" stroke="#fb923c" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="219" y="816" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="13">SP Cert</text>
+  <text x="219" y="832" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif" font-size="13">(key never leaves)</text>
+
+  <!-- [3] Entra ID Token: Ring 3 lower -->
+  <circle cx="387" cy="805" r="4" fill="#fbbf24" opacity="0.85"/>
+  <line x1="387" y1="809" x2="387" y2="836" stroke="#fbbf24" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="387" y="851" text-anchor="middle"
+        fill="#fde68a" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Entra ID Token</text>
+  <text x="387" y="867" text-anchor="middle"
+        fill="#fde68a" font-family="'Segoe UI',Arial,sans-serif" font-size="13">(1h access token)</text>
+
+  <!-- [4] Key Vault: Ring 2 upper-right -->
+  <circle cx="693" cy="515" r="4" fill="#60a5fa" opacity="0.85"/>
+  <line x1="697" y1="513" x2="726" y2="490" stroke="#60a5fa" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="786" y="477" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Key Vault Secret</text>
+  <text x="786" y="493" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Daily SAS (24h)</text>
+
+  <!-- [5] WORM: Ring 1 upper-right (adjusted to avoid overlap with KV) -->
+  <circle cx="605" cy="505" r="4" fill="#4ade80" opacity="0.85"/>
+  <line x1="608" y1="502" x2="644" y2="470" stroke="#4ade80" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="700" y="452" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif" font-size="13">WORM · 90d</text>
+  <text x="700" y="468" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Immutable Lock</text>
+
+  <!-- [6] Log Analytics: Ring 2 lower-right -->
+  <circle cx="644" cy="694" r="4" fill="#60a5fa" opacity="0.85"/>
+  <line x1="648" y1="695" x2="680" y2="714" stroke="#60a5fa" stroke-width="1.2" stroke-opacity="0.45"/>
+  <text x="748" y="708" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="13">Log Analytics</text>
+  <text x="748" y="724" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="13">(no WS write role)</text>
+
+  <!-- ============================================ -->
+  <!-- FOOTER: STAT CHIPS + BRANDING               -->
+  <!-- ============================================ -->
+  <line x1="60" y1="1003" x2="1020" y2="1003" stroke="#0e2040" stroke-width="1.5"/>
+
+  <!-- Stat chip 1: 0 Passwords -->
+  <rect x="62" y="1013" width="218" height="38" rx="19" fill="#0a1e38" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="171" y="1037" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="600">0 Passwords</text>
+
+  <!-- Stat chip 2: Write-Only -->
+  <rect x="290" y="1013" width="218" height="38" rx="19" fill="#0a1e38" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="399" y="1037" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="600">Write-Only SAS</text>
+
+  <!-- Stat chip 3: 90-Day WORM -->
+  <rect x="518" y="1013" width="218" height="38" rx="19" fill="#0a1e38" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="627" y="1037" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="600">90-Day WORM</text>
+
+  <!-- Stat chip 4: 100% Logged -->
+  <rect x="746" y="1013" width="218" height="38" rx="19" fill="#0a1e38" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="855" y="1037" text-anchor="middle"
+        fill="#c084fc" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="600">100% Logged</text>
+
+  <!-- Branding row -->
+  <text x="62" y="1068" fill="#2563eb"
+        font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700" letter-spacing="1.5">AWACS</text>
+  <text x="110" y="1068" fill="#1e3a5f"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="13"> · awacs.ai</text>
+  <text x="540" y="1068" text-anchor="middle"
+        fill="#1e3a5f" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="11" letter-spacing="2.5">NEVER TRUST  ·  ALWAYS VERIFY  ·  ENFORCE AT EVERY BOUNDARY</text>
+
+</svg>

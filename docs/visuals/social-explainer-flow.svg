@@ -1,0 +1,344 @@
+<svg width="1200" height="628" viewBox="0 0 1200 628" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="80%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#0f2644"/>
+      <stop offset="100%" stop-color="#060f1f"/>
+    </radialGradient>
+    <pattern id="dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.65" fill="#ffffff" opacity="0.04"/>
+    </pattern>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arr1" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb923c" opacity="0.9"/>
+    </marker>
+    <marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24" opacity="0.9"/>
+    </marker>
+    <marker id="arr3" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa" opacity="0.9"/>
+    </marker>
+    <marker id="arr4" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ade80" opacity="0.9"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="628" fill="url(#bg)"/>
+  <rect width="1200" height="628" fill="url(#dots)"/>
+
+  <!-- ============================================ -->
+  <!-- HEADER                                       -->
+  <!-- ============================================ -->
+  <line x1="20" y1="42" x2="462" y2="42" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="600" y="47" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="11" font-weight="600" letter-spacing="4">HOW  IT  WORKS</text>
+  <line x1="738" y1="42" x2="1180" y2="42" stroke="#1e3a5f" stroke-width="1"/>
+
+  <text x="600" y="72" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="24" font-weight="700" letter-spacing="-0.5">Zero Trust Lab Data Consolidation</text>
+
+  <text x="600" y="93" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="11">Shared workstations. Sensitive data. Automated secure push to Azure — zero trust enforced at every step.</text>
+
+  <line x1="20" y1="103" x2="1180" y2="103" stroke="#152640" stroke-width="1"/>
+
+  <!-- ============================================ -->
+  <!-- FLOW ARROWS                                  -->
+  <!-- Arrow y=214. Nodes at x: 20,261,502,743,984 -->
+  <!-- ============================================ -->
+
+  <!-- Arrow 1→2 -->
+  <line x1="215" y1="214" x2="253" y2="214"
+        stroke="#fb923c" stroke-width="1.5" stroke-opacity="0.8"
+        marker-end="url(#arr1)"/>
+  <!-- Label chip -->
+  <rect x="213" y="196" width="52" height="14" rx="7" fill="#1a1200" stroke="#fb923c" stroke-width="0.75" stroke-opacity="0.5"/>
+  <text x="239" y="207" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="0.3">TLS 1.2+</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="456" y1="214" x2="494" y2="214"
+        stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.8"
+        marker-end="url(#arr2)"/>
+  <rect x="446" y="196" width="66" height="14" rx="7" fill="#1a1200" stroke="#fbbf24" stroke-width="0.75" stroke-opacity="0.5"/>
+  <text x="479" y="207" text-anchor="middle"
+        fill="#fbbf24" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="0.3">TOKEN (1h)</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="697" y1="214" x2="735" y2="214"
+        stroke="#60a5fa" stroke-width="1.5" stroke-opacity="0.8"
+        marker-end="url(#arr3)"/>
+  <rect x="675" y="196" width="90" height="14" rx="7" fill="#040c2a" stroke="#60a5fa" stroke-width="0.75" stroke-opacity="0.5"/>
+  <text x="720" y="207" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="0.3">WRITE-ONLY SAS</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="938" y1="214" x2="976" y2="214"
+        stroke="#4ade80" stroke-width="1.5" stroke-opacity="0.8"
+        marker-end="url(#arr4)"/>
+  <rect x="916" y="196" width="90" height="14" rx="7" fill="#001a0a" stroke="#4ade80" stroke-width="0.75" stroke-opacity="0.5"/>
+  <text x="961" y="207" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="0.3">READ-ONLY RBAC</text>
+
+  <!-- ============================================ -->
+  <!-- NODE 1 — Lab Workstation                     -->
+  <!-- x=20, y=108, w=195, h=212                    -->
+  <!-- ============================================ -->
+  <rect x="20" y="108" width="195" height="212" rx="6"
+        fill="#0c1829" stroke="#ea580c" stroke-width="1.5" stroke-opacity="0.6"/>
+  <rect x="20" y="108" width="195" height="47" rx="6"
+        fill="#ea580c" fill-opacity="0.20"/>
+  <rect x="20" y="130" width="195" height="25" fill="#ea580c" fill-opacity="0.20"/>
+  <text x="32" y="152" fill="white" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="38" font-weight="900" opacity="0.10">1</text>
+  <text x="117" y="145" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif" font-size="22">&#x1F5A5;</text>
+  <text x="117" y="174" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700">Lab Workstation</text>
+  <text x="117" y="193" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Analyst saves data files.</text>
+  <text x="117" y="208" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Scheduled task fires</text>
+  <text x="117" y="223" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">every 30 minutes.</text>
+  <line x1="35" y1="238" x2="200" y2="238" stroke="#1a2e48" stroke-width="1"/>
+  <text x="117" y="252" text-anchor="middle"
+        fill="#f97316" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="1.5">ON-PREM · LOW TRUST</text>
+  <text x="117" y="269" text-anchor="middle"
+        fill="#fdba74" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" font-weight="600">No admin rights</text>
+  <text x="117" y="284" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">service account only</text>
+  <text x="117" y="299" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">cert in OS store</text>
+
+  <!-- ============================================ -->
+  <!-- NODE 2 — Identity Check                      -->
+  <!-- ============================================ -->
+  <rect x="261" y="108" width="195" height="212" rx="6"
+        fill="#0c1829" stroke="#ca8a04" stroke-width="1.5" stroke-opacity="0.6"/>
+  <rect x="261" y="108" width="195" height="47" rx="6"
+        fill="#ca8a04" fill-opacity="0.20"/>
+  <rect x="261" y="130" width="195" height="25" fill="#ca8a04" fill-opacity="0.20"/>
+  <text x="273" y="152" fill="white" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="38" font-weight="900" opacity="0.10">2</text>
+  <text x="358" y="145" text-anchor="middle"
+        fill="#fbbf24" font-family="'Segoe UI',Arial,sans-serif" font-size="22">&#x1F510;</text>
+  <text x="358" y="174" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700">Identity Check</text>
+  <text x="358" y="193" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">SP certificate proves</text>
+  <text x="358" y="208" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">machine identity to</text>
+  <text x="358" y="223" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Azure Entra ID.</text>
+  <line x1="276" y1="238" x2="441" y2="238" stroke="#1a2e48" stroke-width="1"/>
+  <text x="358" y="252" text-anchor="middle"
+        fill="#eab308" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="1.5">CERT ONLY · NO PASSWORD</text>
+  <text x="358" y="269" text-anchor="middle"
+        fill="#fde68a" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" font-weight="600">Private key never leaves</text>
+  <text x="358" y="284" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">JWT signed in-place</text>
+  <text x="358" y="299" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">access token: 1h lifetime</text>
+
+  <!-- ============================================ -->
+  <!-- NODE 3 — Key Vault                           -->
+  <!-- ============================================ -->
+  <rect x="502" y="108" width="195" height="212" rx="6"
+        fill="#0c1829" stroke="#2563eb" stroke-width="1.5" stroke-opacity="0.6"
+        filter="url(#glow)"/>
+  <rect x="502" y="108" width="195" height="47" rx="6"
+        fill="#2563eb" fill-opacity="0.22"/>
+  <rect x="502" y="130" width="195" height="25" fill="#2563eb" fill-opacity="0.22"/>
+  <text x="514" y="152" fill="white" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="38" font-weight="900" opacity="0.10">3</text>
+  <text x="599" y="145" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif" font-size="22">&#x1F511;</text>
+  <text x="599" y="174" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700">Key Vault</text>
+  <text x="599" y="193" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Token unlocks today's</text>
+  <text x="599" y="208" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">write-only SAS token.</text>
+  <text x="599" y="223" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">24-hour expiry.</text>
+  <line x1="517" y1="238" x2="682" y2="238" stroke="#1a2e48" stroke-width="1"/>
+  <text x="599" y="252" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="1.5">AZURE · HIGH TRUST</text>
+  <text x="599" y="269" text-anchor="middle"
+        fill="#93c5fd" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" font-weight="600">Write-only SAS: sp=acw</text>
+  <text x="599" y="284" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">no read · no list · no delete</text>
+  <text x="599" y="299" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">rotated daily, auto-expired</text>
+
+  <!-- ============================================ -->
+  <!-- NODE 4 — Secure Storage                      -->
+  <!-- ============================================ -->
+  <rect x="743" y="108" width="195" height="212" rx="6"
+        fill="#0c1829" stroke="#16a34a" stroke-width="1.5" stroke-opacity="0.6"
+        filter="url(#glow)"/>
+  <rect x="743" y="108" width="195" height="47" rx="6"
+        fill="#16a34a" fill-opacity="0.20"/>
+  <rect x="743" y="130" width="195" height="25" fill="#16a34a" fill-opacity="0.20"/>
+  <text x="755" y="152" fill="white" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="38" font-weight="900" opacity="0.10">4</text>
+  <text x="840" y="145" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif" font-size="22">&#x1F512;</text>
+  <text x="840" y="174" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700">Secure Storage</text>
+  <text x="840" y="193" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">File written once.</text>
+  <text x="840" y="208" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">WORM-locked 90 days.</text>
+  <text x="840" y="223" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Cannot be deleted.</text>
+  <line x1="758" y1="238" x2="923" y2="238" stroke="#1a2e48" stroke-width="1"/>
+  <text x="840" y="252" text-anchor="middle"
+        fill="#22c55e" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="1.5">IMMUTABLE · AUDITED</text>
+  <text x="840" y="269" text-anchor="middle"
+        fill="#86efac" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" font-weight="600">Azure-enforced retention</text>
+  <text x="840" y="284" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">even owner cannot delete</text>
+  <text x="840" y="299" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">versioning + soft delete on</text>
+
+  <!-- ============================================ -->
+  <!-- NODE 5 — Analyst Access                      -->
+  <!-- ============================================ -->
+  <rect x="984" y="108" width="195" height="212" rx="6"
+        fill="#0c1829" stroke="#9333ea" stroke-width="1.5" stroke-opacity="0.6"/>
+  <rect x="984" y="108" width="195" height="47" rx="6"
+        fill="#9333ea" fill-opacity="0.20"/>
+  <rect x="984" y="130" width="195" height="25" fill="#9333ea" fill-opacity="0.20"/>
+  <text x="996" y="152" fill="white" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="38" font-weight="900" opacity="0.10">5</text>
+  <text x="1081" y="145" text-anchor="middle"
+        fill="#c084fc" font-family="'Segoe UI',Arial,sans-serif" font-size="22">&#x1F464;</text>
+  <text x="1081" y="174" text-anchor="middle"
+        fill="#f1f5f9" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="700">Analyst Access</text>
+  <text x="1081" y="193" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">MFA-authenticated.</text>
+  <text x="1081" y="208" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Individual identity.</text>
+  <text x="1081" y="223" text-anchor="middle"
+        fill="#94a3b8" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">Read-only RBAC.</text>
+  <line x1="999" y1="238" x2="1164" y2="238" stroke="#1a2e48" stroke-width="1"/>
+  <text x="1081" y="252" text-anchor="middle"
+        fill="#a855f7" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="8" font-weight="700" letter-spacing="1.5">MED TRUST · LOGGED</text>
+  <text x="1081" y="269" text-anchor="middle"
+        fill="#c084fc" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10.5" font-weight="600">Cannot write or delete</text>
+  <text x="1081" y="284" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">read log → Log Analytics</text>
+  <text x="1081" y="299" text-anchor="middle"
+        fill="#7c9ab5" font-family="'Segoe UI',Arial,sans-serif" font-size="10">immutability blocks override</text>
+
+  <!-- ============================================ -->
+  <!-- ANNOTATION ROW                               -->
+  <!-- ============================================ -->
+  <line x1="20" y1="330" x2="1180" y2="330" stroke="#152640" stroke-width="1"/>
+
+  <text x="117" y="349" text-anchor="middle"
+        fill="#4e6a84" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5">push-files.ps1 · 30-min · local log rotated 14d</text>
+  <text x="358" y="349" text-anchor="middle"
+        fill="#4e6a84" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5">Entra ID sign-in event logged per push</text>
+  <text x="599" y="349" text-anchor="middle"
+        fill="#4e6a84" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5">KV audit event logged per Get Secret</text>
+  <text x="840" y="349" text-anchor="middle"
+        fill="#4e6a84" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5">Storage write log: caller IP · blob name</text>
+  <text x="1081" y="349" text-anchor="middle"
+        fill="#4e6a84" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5">Storage read log: individual identity</text>
+
+  <!-- ============================================ -->
+  <!-- STAT CHIPS                                   -->
+  <!-- ============================================ -->
+  <line x1="20" y1="366" x2="1180" y2="366" stroke="#152640" stroke-width="1"/>
+
+  <rect x="118" y="380" width="170" height="34" rx="17"
+        fill="#0a1628" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="203" y="402" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="600">0 Passwords</text>
+
+  <rect x="360" y="380" width="190" height="34" rx="17"
+        fill="#0a1628" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="455" y="402" text-anchor="middle"
+        fill="#fb923c" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="600">Write-Only Access</text>
+
+  <rect x="622" y="380" width="170" height="34" rx="17"
+        fill="#0a1628" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="707" y="402" text-anchor="middle"
+        fill="#4ade80" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="600">90-Day WORM</text>
+
+  <rect x="864" y="380" width="162" height="34" rx="17"
+        fill="#0a1628" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="945" y="402" text-anchor="middle"
+        fill="#c084fc" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="600">100% Logged</text>
+
+  <!-- ============================================ -->
+  <!-- FOOTER                                       -->
+  <!-- ============================================ -->
+  <line x1="20" y1="428" x2="1180" y2="428" stroke="#152640" stroke-width="1"/>
+  <rect x="0" y="428" width="1200" height="200" fill="#060f1f" fill-opacity="0.5"/>
+
+  <text x="600" y="458" text-anchor="middle"
+        fill="#60a5fa" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="12" font-weight="600" letter-spacing="1">WHAT THIS SOLVES</text>
+
+  <text x="600" y="478" text-anchor="middle"
+        fill="#64748b" font-family="'Segoe UI',Arial,sans-serif" font-size="11">Shared lab PCs are untrusted by design. Sensitive research files used to leave via USB, email, or shared drives — no audit trail, no access control.</text>
+  <text x="600" y="494" text-anchor="middle"
+        fill="#64748b" font-family="'Segoe UI',Arial,sans-serif" font-size="11">This system automates secure push to tamper-proof cloud storage. No manual steps. No shared credentials. Every action logged and immutable.</text>
+
+  <!-- Deployment note -->
+  <rect x="260" y="508" width="680" height="30" rx="4"
+        fill="#0a1628" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="600" y="528" text-anchor="middle"
+        fill="#64748b" font-family="'Segoe UI',Arial,sans-serif" font-size="10.5">&#x1F4E6;  Pull-down deployable: git clone + .\Deploy.ps1 — creates all Azure resources, bootstraps workstations, no manual portal steps.</text>
+
+  <!-- Branding -->
+  <line x1="20" y1="552" x2="1180" y2="552" stroke="#152640" stroke-width="1"/>
+  <text x="30" y="570" fill="#3b82f6"
+        font-family="'Segoe UI',Arial,sans-serif"
+        font-size="11" font-weight="700" letter-spacing="1.5">AWACS</text>
+  <text x="78" y="570" fill="#334155"
+        font-family="'Segoe UI',Arial,sans-serif" font-size="11"> · awacs.ai</text>
+  <text x="600" y="570" text-anchor="middle"
+        fill="#334155" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10" letter-spacing="2">NEVER TRUST  ·  ALWAYS VERIFY  ·  ENFORCE AT EVERY BOUNDARY</text>
+  <text x="1170" y="570" text-anchor="end"
+        fill="#334155" font-family="'Segoe UI',Arial,sans-serif"
+        font-size="10">Zero Trust Architecture</text>
+
+</svg>
