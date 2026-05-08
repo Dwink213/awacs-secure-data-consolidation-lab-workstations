@@ -38,6 +38,7 @@ We name eight trust zones. The system's job is to ensure that crossings between 
 | Z6 — Key Vault | **HIGH** | Holds the rotated SAS |
 | Z7 — Storage Account (write side) | **HIGH** | Where files land. Immutability enforced. |
 | Z8 — Consumer Desks (analyst workstations, separate) | **MEDIUM** | Domain-joined, individual user identity, MFA |
+| Z9 — Azure Automation Account (SAS rotator) | **HIGH** | Azure-hosted compute with system-assigned MSI. Token is ephemeral and non-exportable. Added 2026-05-08 — see ADR-008. |
 
 The crossings worth naming:
 
@@ -46,6 +47,8 @@ The crossings worth naming:
 - **Z4 → Z6:** SP token grants `Get Secret` on a single secret name (the rotated SAS).
 - **Z6 → Z7:** SAS grants write-only on a single container.
 - **Z8 → Z7:** Consumer RBAC grants read on the container, no write, no delete.
+- **Z9 → Z6:** Automation MSI writes new SAS token version to `current-write-sas` only (`Key Vault Secrets Officer` scoped to that secret resource ID).
+- **Z9 → Z7 (data plane):** Automation MSI has `Storage Blob Data Contributor` on the `lab-files` container. This is required to generate a user-delegation SAS with `acw` permissions (the issuing identity must hold the permissions it embeds). This is the **widest credential in the system** — the MSI can write directly to the container without a SAS intermediary. Mitigating controls: (1) MSI token is ephemeral — it cannot be exported from the Automation runtime; (2) immutability policy prevents delete even with direct write access; (3) every job invocation is logged to Log Analytics with timestamp and outcome.
 
 Anything trying to traverse a trust boundary outside these named crossings is a red flag.
 

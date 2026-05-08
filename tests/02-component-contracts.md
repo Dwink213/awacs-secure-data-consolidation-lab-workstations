@@ -162,4 +162,60 @@ Owner: 🏗️ Architect. Each Atomic Lego must do what its README claims. These
 
 ---
 
-**Total tests in this file:** 14.
+## Test: C8.1 — SAS Rotator: Automation Account exists with MSI and Free SKU
+
+**Component:** 08-sas-rotator
+**Question:** Does the Automation Account `{prefix}-auto-{suffix}` exist in the correct state with a system-assigned MSI principal?
+**Expected Answer:** `az automation account show` returns `state: Ok`, `sku: Free` (or Basic — Free maps to Basic in the API), and a non-empty `identity.principalId`.
+**Failure Diagnosis:** Bicep deploy may have failed or drifted. Re-run deploy or check ARM for partial state.
+**Owner Agent:** 🏗️
+**Executable:** `tests/scripts/C8_1-auto-acct-exists.ps1`
+
+## Test: C8.2 — SAS Rotator: Three RBAC assignments exist at correct scopes
+
+**Component:** 08-sas-rotator
+**Question:** Does the Automation MSI hold exactly three role assignments: Storage Blob Delegator on the SA, Storage Blob Data Contributor on the container, and Key Vault Secrets Officer scoped to the single secret resource?
+**Expected Answer:** `az role assignment list --assignee {msiPrincipalId} --all` returns all three roles at the stated scopes. No broader scope (e.g., resource group or subscription level).
+**Failure Diagnosis:** Bicep RBAC resources may not have deployed. Check Bicep output or run `az role assignment list` and compare against `main.bicep` scope expressions.
+**Owner Agent:** 🛡️
+**Executable:** `tests/scripts/C8_2-rbac-correct.ps1`
+
+## Test: C8.3 — SAS Rotator: Runbook is in Published state
+
+**Component:** 08-sas-rotator
+**Question:** Does the `rotate-sas` runbook exist in the Automation Account and have state `Published` (not Draft)?
+**Expected Answer:** `az automation runbook show` returns `state: Published` and `runbookType: PowerShell`.
+**Failure Diagnosis:** Deploy.ps1 Step 5b may have skipped the publish step. Run `az automation runbook publish` manually. Check if runbook content was uploaded before publishing.
+**Owner Agent:** 🔧
+**Executable:** `tests/scripts/C8_3-runbook-published.ps1`
+
+## Test: C8.4 — SAS Rotator: Schedule exists with correct interval and is enabled
+
+**Component:** 08-sas-rotator
+**Question:** Does the `every-6-days` schedule exist, have `frequency: Day`, `interval: 6`, and `isEnabled: true`?
+**Expected Answer:** All three conditions met. `nextRun` is within the next 6 days.
+**Failure Diagnosis:** Schedule not created — Deploy.ps1 Step 5b may have failed at `az automation schedule create`. Create manually: `az automation schedule create --frequency Day --interval 6 ...`
+**Owner Agent:** 🔧
+**Executable:** `tests/scripts/C8_4-schedule-exists.ps1`
+
+## Test: C8.5 — SAS Rotator: Last rotation succeeded within 7 days
+
+**Component:** 08-sas-rotator
+**Question:** Does the Automation Account have at least one Completed job for `rotate-sas` within the last 7 days?
+**Expected Answer:** `az automation job list` returns a job with `status: Completed` and `endTime` within 7 days of today.
+**Failure Diagnosis:** Check Automation Account Jobs blade. If status is Failed, read job output stream for error. Most common: RBAC not propagated at time of run, or `Get-AutomationVariable` returned null. Trigger manually and observe.
+**Owner Agent:** 🔧
+**Executable:** `tests/scripts/C8_5-last-rotation-ok.ps1`
+
+## Test: C8.6 — SAS Rotator: KV secret expiry is future and within 7-day window
+
+**Component:** 08-sas-rotator
+**Question:** Does the `current-write-sas` secret contain a token with an `se=` expiry that is in the future and ≤ 7 days from now?
+**Expected Answer:** Parsed expiry is between now and now+7d. Confirms the rotator wrote a valid token (not empty, not expired, not over the Azure cap).
+**Failure Diagnosis:** If expired: rotation failed or didn't run. Trigger manually. If expiry > 7d: SAS was generated with account key (not user-delegation), bypassing the 7-day cap — investigate how it was generated.
+**Owner Agent:** 🛡️
+**Executable:** `tests/scripts/C8_6-sas-expiry-valid.ps1`
+
+---
+
+**Total tests in this file:** 20.

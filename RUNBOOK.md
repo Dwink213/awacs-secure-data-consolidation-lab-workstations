@@ -4,21 +4,46 @@ Day-2 operations for a deployed AWACS Secure Lab Backup environment. Owner: 🔧
 
 ## Routine operations
 
-### 1. SAS rotation (daily)
+### 1. SAS rotation (automated — verify monthly; manual is fallback only)
 
-The push depends on a fresh SAS in Key Vault. The deploy seeds the first 24h SAS; daily rotation is **the operator's responsibility** (or an automation runner the operator wires up).
+The push depends on a fresh SAS in Key Vault. **Rotation is automated** via Azure Automation Account `awdust-auto-ybmh`, runbook `rotate-sas`, schedule `every-6-days` (noon UTC). No operator action is required under normal operation.
 
-**Recommended rotator:** Azure Function on a CRON timer trigger, with system-assigned Managed Identity granted `Storage Blob Delegator` on the storage account and `Key Vault Secrets Officer` on the secret resource ID. The function generates a fresh SAS via `New-AzStorageContainerSASToken` (or `BlobContainerClient.GenerateSasUri`) and writes it to KV.
-
-**Manual rotation (until automation lands):**
+**Routine health check (monthly):**
 
 **Command:**
+```powershell
+# Confirm last rotation job succeeded
+az automation job list --resource-group awdust-rg --automation-account-name awdust-auto-ybmh --only-show-errors --query "[0].{id:name, status:status, end:endTime}" -o json
+
+# Confirm current SAS expiry is in the future
+az keyvault secret show --vault-name awdust-kv-ybmh --name current-write-sas --query value -o tsv | ForEach-Object {
+    if ($_ -match "se=([^&]+)") { "Expiry: $([uri]::UnescapeDataString($matches[1]))" }
+}
 ```
-$sas = az storage container generate-sas --account-name <sa> --name lab-files --permissions acw --expiry (Get-Date).AddHours(24).ToString("yyyy-MM-ddTHH:mm:ssZ") --auth-mode login --as-user --https-only -o tsv
-az keyvault secret set --vault-name <kv> --name current-write-sas --value $sas
+**Expected output:** Last job `status: Completed`; SAS expiry is 4–7 days in the future.
+
+Or run the test suite: `tests/scripts/C8_5-last-rotation-ok.ps1` and `tests/scripts/C8_6-sas-expiry-valid.ps1`.
+
+**SAS rotation — manual fallback (use only if Automation Account job is failing):**
+
+**Command:**
+```powershell
+# Requires: Storage Blob Delegator role on the storage account for the running identity
+$expiry = (Get-Date).ToUniversalTime().AddDays(7).ToString("yyyy-MM-ddTHH:mm:ssZ")
+$sas = az storage container generate-sas `
+    --account-name awdustsaybmh --name lab-files `
+    --permissions acw --expiry $expiry `
+    --auth-mode login --as-user --https-only -o tsv
+
+# Write BOM-free UTF-8 to a temp file — az keyvault secret set --value breaks on '&' in SAS
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText("$env:TEMP\sas-nobom.tmp", $sas.Trim(), $utf8NoBom)
+az keyvault secret set --vault-name awdust-kv-ybmh --name current-write-sas --file "$env:TEMP\sas-nobom.tmp"
+Remove-Item "$env:TEMP\sas-nobom.tmp"
 ```
-**What it does:** generates a 24h write-only SAS and writes it to the existing KV secret slot (creating a new version, not deleting the old).
-**Expected output:** the KV CLI prints the new secret version's metadata.
+**What it does:** generates a 7-day write-only SAS (maximum Azure allows for user-delegation) and writes it to KV. After manual rotation, investigate why the Automation job failed — check job output in the Automation Account Jobs blade.
+
+**WARNING:** `--value` breaks silently on SAS tokens because the `&` separators confuse the CLI argument parser. Always use `--file` with a BOM-free UTF-8 temp file.
 
 ### 2. Cert rotation (every 90 days, with 14-day warning lead time)
 

@@ -21,6 +21,7 @@ Each row = one tested concern. Each cell = the test ID(s) that cover it.
 | Audit trail | | C5.1 | I3.3 | | | | |
 | Consumer RBAC | T6.1 | C6.1 | | | | | |
 | Workstation push contract | | C7.1, C7.2 | I3.1 | F4.3 | | | W7.1, W7.2, W7.3, W7.4, W7.5, W7.6 |
+| SAS rotation automation | | C8.1, C8.2, C8.3, C8.4, C8.5, C8.6 | | | | | |
 | Idempotency | | | | | | D6.2, D6.3 | W7.6 |
 | Teardown safety | | | | | | D6.4, D6.5 | |
 | Preflight gating | | | | | | D6.1 | |
@@ -37,7 +38,7 @@ Each row = one tested concern. Each cell = the test ID(s) that cover it.
 The battery is complete when:
 
 - Every threat actor (T1–T6) has at least one defense test
-- Every Atomic Lego (01–07) has at least one contract test
+- Every Atomic Lego (01–08) has at least one contract test
 - Every CIS control named in `threat-model.md` §5 has a compliance test
 - Every named failure mode has a test
 - Every script in `deploy/` has a test that exercises it end-to-end

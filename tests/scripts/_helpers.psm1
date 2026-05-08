@@ -38,4 +38,14 @@ function Test-Assert {
   }
 }
 
-Export-ModuleMember -Function Get-AwacsStorageAccount, Get-AwacsKeyVault, Get-AwacsLogAnalyticsWorkspace, Test-Assert
+function Get-AwacsAutomationAccount {
+  param([Parameter(Mandatory)][string]$ResourceGroup)
+  # list first to get the name, then show to get the full object including sku
+  # (az automation account list omits the sku field)
+  $accts = az automation account list --resource-group $ResourceGroup --only-show-errors --output json | ConvertFrom-Json
+  if ($null -eq $accts -or $accts.Count -eq 0) { throw "No Automation Account found in $ResourceGroup" }
+  $full = az automation account show --resource-group $ResourceGroup --name $accts[0].name --only-show-errors --output json | ConvertFrom-Json
+  return $full
+}
+
+Export-ModuleMember -Function Get-AwacsStorageAccount, Get-AwacsKeyVault, Get-AwacsLogAnalyticsWorkspace, Get-AwacsAutomationAccount, Test-Assert
