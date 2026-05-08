@@ -1,5 +1,5 @@
 // Top-level Bicep orchestrator.
-// Composes the six cloud-side Atomic Legos (01, 02, 03, 04, 05, 06).
+// Composes the seven cloud-side Atomic Legos (01, 02, 03, 04, 05, 06, 08).
 // SP creation is imperative in Deploy.ps1 (see component 03 README + ADR-003).
 
 targetScope = 'resourceGroup'
@@ -97,6 +97,21 @@ module rbac '../components/06-rbac-consumer-access/main.bicep' = {
   }
 }
 
+// Component 08 — SAS rotator (Azure Automation Account + MSI, see ADR-008)
+module rotator '../components/08-sas-rotator/main.bicep' = {
+  name: 'deploy-08-rotator'
+  params: {
+    prefix: prefix
+    location: location
+    storageAccountName: sa.outputs.storageAccountName
+    containerName: sa.outputs.containerName
+    keyVaultName: kv.outputs.keyVaultName
+    secretResourceId: kv.outputs.secretResourceId
+    logAnalyticsWorkspaceId: la.outputs.workspaceId
+  }
+  dependsOn: [sa, kv, la]
+}
+
 // Outputs surface what Deploy.ps1 needs to build the workstation config
 output storageAccountName string = sa.outputs.storageAccountName
 output containerName string = sa.outputs.containerName
@@ -106,3 +121,4 @@ output keyVaultUri string = kv.outputs.keyVaultUri
 output secretName string = kv.outputs.secretName
 output workspaceId string = la.outputs.workspaceId
 output workspaceCustomerId string = la.outputs.workspaceCustomerId
+output autoAcctName string = rotator.outputs.autoAcctName

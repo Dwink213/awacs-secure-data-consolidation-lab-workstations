@@ -1,12 +1,12 @@
 # STATUS.md — AWACS Secure Lab Backup
 **Last updated:** 2026-05-08
-**Updated by:** Session 2026-05-08 (SAS rotation + Norton fix)
+**Updated by:** Session 2026-05-08-s2 (component 08 build + IaC cleanup)
 
 ---
 
-## System State: LIVE ✅
+## System State: LIVE ✅ — Rotation Automated
 
-SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backups should resume on next scheduled task run (every 30 min). Norton SSL scanning disabled to unblock Azure CLI — see Known Gotchas.
+SAS token rotated by Automation Account `awdust-auto-ybmh` on 2026-05-08T21:41:03Z. Expiry: **2026-05-15T21:41:03Z**. Next automatic rotation: ~2026-05-14 (noon UTC). Manual rotation is now a fallback procedure only — see RUNBOOK.md.
 
 ---
 
@@ -21,9 +21,10 @@ SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backup
 | Service principal (`awdust-lab-sp`) | ✅ Working | Cert `BC9BE61910E9D83061AFBA8D06DBA03380B0876B`; cert-only auth |
 | Workstation bootstrap (`workstation/bootstrap.ps1`) | ✅ Working | DESKTOP-0DBOTVV: all 6 steps green |
 | Scheduled task (`AwacsBackupPush`) | ✅ Working | Every 30 min, Interactive logon, DESKTOP-0DBOTVV |
-| Push script (`workstation/push-files.ps1`) | ⚠️ Failing | HTTP 403 on blob write — SAS token expired; rotation required |
+| Push script (`workstation/push-files.ps1`) | ✅ Working | SAS rotated; HTTP 403 resolved |
+| SAS rotation automation (`awdust-auto-ybmh`) | ✅ Working | Job 45bb7628 succeeded; next run ~2026-05-14 noon UTC |
 | Test battery (11/11 executable scripts) | ✅ Passing | Storage hardening, KV hardening, immutability, diag, consumer RBAC |
-| End-to-end cert → SAS → blob flow | ✅ Verified | REST PUT 201; 79 blobs confirmed in container |
+| End-to-end cert → SAS → blob flow | ✅ Verified | REST PUT 201; 97 blobs confirmed in container |
 
 ---
 
@@ -32,7 +33,6 @@ SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backup
 | Item | Status | Notes |
 |------|--------|-------|
 | Test specs 12–52 | ⚠️ Spec-only | 38 of 52 test specs have no executable script; runnable subset covers most load-bearing checks |
-| SAS rotation automation | ⚠️ Manual only | 24h SAS; RUNBOOK.md documents manual rotation; no scheduled rotator yet |
 | Multi-workstation isolation | ⚠️ One workstation tested | DESKTOP-0DBOTVV only; second workstation bootstrap not yet run |
 | `deploy/preflight.sh` / `verify.sh` / `teardown.sh` | ⚠️ Present but Windows-focused | `.sh` wrappers exist; `.ps1` versions are the primary path |
 
@@ -56,6 +56,7 @@ SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backup
 | Storage Account | `awdustsaybmh` | eastus2 | WORM; 79 blobs as of 2026-04-30 |
 | Key Vault | `awdust-kv-ybmh` | eastus2 | RBAC mode; holds `current-write-sas` |
 | Log Analytics | `awdust-la-ybmh` | eastus2 | Receives diag from SA and KV |
+| Automation Account | `awdust-auto-ybmh` | eastus2 | Free SKU; MSI `41ca010b-76bc-434a-a052-8112c3ef69fc`; runbook `rotate-sas` |
 | SP App Registration | `awdust-lab-sp` | global | App ID `a35642f9-8f24-429a-ae4a-2c3d22c1f636` |
 
 **Subscription:** `49521d08-4a34-4355-a069-919af69ad956`
@@ -84,24 +85,11 @@ SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backup
 |------|-------|
 | KV secret name | `current-write-sas` |
 | Length | ~264–270 chars |
-| **Status** | **LIVE** — rotated 2026-05-08T00:35:57Z, expires 2026-05-14T20:35:40Z |
+| **Status** | **LIVE** — rotated by Automation Account 2026-05-08T21:41:03Z, expires 2026-05-15T21:41:03Z |
 | Permissions | `acw` (add/create/write) |
-| Rotation method | Manual — see `RUNBOOK.md` |
+| Rotation method | **Automated** — Azure Automation Account `awdust-auto-ybmh`, schedule `every-6-days`, noon UTC |
 
-**🚨 Action required NOW (2026-05-01):** Token is expired. Backups failing silently. Run rotation immediately:
-```powershell
-az storage container generate-sas `
-    --name lab-files `
-    --account-name awdustsaybmh `
-    --auth-mode login --as-user `
-    --permissions acw `
-    --expiry (Get-Date).AddDays(1).ToString("yyyy-MM-ddTHH:mm:ssZ") `
-    --output tsv > $env:TEMP\sas.tmp
-$utf8NoBom = New-Object System.Text.UTF8Encoding $false
-[System.IO.File]::WriteAllText("$env:TEMP\sas-nobom.tmp", (Get-Content $env:TEMP\sas.tmp -Raw).Trim(), $utf8NoBom)
-az keyvault secret set --vault-name awdust-kv-ybmh --name current-write-sas --file "$env:TEMP\sas-nobom.tmp"
-Remove-Item $env:TEMP\sas.tmp, $env:TEMP\sas-nobom.tmp
-```
+Manual rotation is a fallback procedure only. If the Automation job fails, see `RUNBOOK.md`.
 
 ---
 
@@ -114,13 +102,16 @@ Remove-Item $env:TEMP\sas.tmp, $env:TEMP\sas-nobom.tmp
 5. **`Install-Module` hangs non-interactively** — pre-install NuGet provider first
 6. **`TimeSpan.MaxValue` overflows Task Scheduler XML** — omit `-RepetitionDuration` for indefinite repeat
 7. **`LogonType S4U` requires admin** — use `Interactive` for always-logged-in workstations
+8. **Norton Web Shield re-signs Azure CLI TLS** — Python certifi doesn't trust Norton's CA; disable SSL scanning in Norton or add Azure domains as exclusions (login.microsoftonline.com, management.azure.com, vault.azure.net, blob.core.windows.net)
+9. **`az automation runbook replace-content` and `az automation jobSchedules create` are missing** — upload runbook content and link schedules via REST API with `Invoke-RestMethod` + Bearer token
+10. **Automation Variable values must be JSON-encoded** — strings need extra double-quote layer: `'"${myVar}"'` not `'${myVar}'`
 
 ---
 
 ## V2 Backlog (from SESSION_2026-04-30.md)
 
 - [ ] Auto-assign `Storage Blob Data Contributor` in `deploy/Deploy.ps1`
-- [ ] SAS rotation automation (Function-based rotator or scheduled task)
+- [x] SAS rotation automation — done: Azure Automation Account `awdust-auto-ybmh`, component 08
 - [ ] 38 remaining test specs → executable scripts
 - [ ] Second workstation bootstrap and isolation test
 - [ ] GitHub publish + README polish + deploy GIF
@@ -136,5 +127,7 @@ Remove-Item $env:TEMP\sas.tmp, $env:TEMP\sas-nobom.tmp
 | Autonomous overnight run | 2026-04-30 | Full IaC + tests + docs authored |
 | Live deployment | 2026-04-30 | RG deployed, tests passing, bootstrap complete, 78/78 push verified |
 | SAS expiry / idle cron | 2026-05-01 | SAS expired; system DEGRADED; rotation pending; gap documented |
+| Norton TLS fix + manual SAS rotation | 2026-05-08 | Norton SSL interception diagnosed; token rotated manually; system LIVE |
+| Component 08 build (SAS rotator) | 2026-05-08 | Azure Automation Account deployed; runbook tested (job 45bb7628); IaC cleaned up |
 
 Full session notes: `docs/session-notes/SESSION_2026-04-30.md`

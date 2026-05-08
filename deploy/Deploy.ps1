@@ -7,7 +7,7 @@
   - Runs preflight checks
   - Creates the resource group
   - Creates the Service Principal with cert (imperative; see ADR-003)
-  - Deploys the orchestrator Bicep (components 01-06)
+  - Deploys the orchestrator Bicep (components 01-06, 08)
   - Generates and uploads the initial 24h SAS to Key Vault
   - Emits workstation config + cert location to stdout
 
@@ -132,6 +132,59 @@ if ([string]::IsNullOrWhiteSpace($sas)) {
 } else {
   az keyvault secret set --vault-name $kvName --name $secretName --value $sas | Out-Null
   Write-Host "Initial SAS uploaded to KV secret '$secretName'." -ForegroundColor Green
+}
+
+# Step 5b: upload SAS rotator runbook to Automation Account and link schedule
+# - az CLI lacks 'automation runbook replace-content' and 'automation jobSchedule create'
+# - content upload and schedule linking use REST API directly (Bearer token from az account get-access-token)
+Write-Host "==> Uploading SAS rotator runbook to Automation Account..." -ForegroundColor Cyan
+$autoAcctName = $deployResult.properties.outputs.autoAcctName.value
+if ($autoAcctName) {
+  $runbookPath = Join-Path $repoRoot 'components\08-sas-rotator\runbook\rotate-sas.ps1'
+  $token = (az account get-access-token --query accessToken -o tsv)
+  $authHeader = @{ Authorization = "Bearer $token" }
+
+  # Create runbook shell — idempotent, ok if already exists
+  az automation runbook create `
+    --resource-group $rgName `
+    --automation-account-name $autoAcctName `
+    --name 'rotate-sas' `
+    --type PowerShell `
+    --output none 2>$null
+
+  # Upload draft content via REST (Content-Type must be text/powershell, not application/json)
+  $runbookContent = [System.IO.File]::ReadAllText($runbookPath, [System.Text.Encoding]::UTF8)
+  $putUri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$rgName/providers/Microsoft.Automation/automationAccounts/$autoAcctName/runbooks/rotate-sas/draft/content?api-version=2023-11-01"
+  $contentHeaders = @{ Authorization = "Bearer $token"; 'Content-Type' = 'text/powershell' }
+  Invoke-RestMethod -Method PUT -Uri $putUri -Headers $contentHeaders -Body $runbookContent | Out-Null
+
+  # Publish the draft
+  az automation runbook publish `
+    --resource-group $rgName `
+    --automation-account-name $autoAcctName `
+    --name 'rotate-sas' `
+    --output none
+
+  # Create schedule — noon UTC, every 6 days. Idempotent; ignore error if name already exists.
+  $firstRun = (Get-Date).ToUniversalTime().Date.AddDays(1).AddHours(12).ToString('yyyy-MM-ddTHH:mm:ssZ')
+  az automation schedule create `
+    --resource-group $rgName `
+    --automation-account-name $autoAcctName `
+    --name 'every-6-days' `
+    --frequency Day `
+    --interval 6 `
+    --start-time $firstRun `
+    --output none 2>$null
+
+  # Link runbook to schedule — az CLI missing this verb; use REST PUT on jobSchedules
+  $jobSchedUri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$rgName/providers/Microsoft.Automation/automationAccounts/$autoAcctName/jobSchedules/$([guid]::NewGuid())?api-version=2023-11-01"
+  $linkBody = @{ properties = @{ runbook = @{ name = 'rotate-sas' }; schedule = @{ name = 'every-6-days' } } } | ConvertTo-Json -Depth 5
+  $jsonHeaders = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json' }
+  Invoke-RestMethod -Method PUT -Uri $jobSchedUri -Headers $jsonHeaders -Body $linkBody | Out-Null
+
+  Write-Host "Runbook 'rotate-sas' uploaded, published, and scheduled in '$autoAcctName'." -ForegroundColor Green
+} else {
+  Write-Host "WARNING: Could not resolve Automation Account name from deployment outputs. Upload runbook manually per RUNBOOK.md." -ForegroundColor Yellow
 }
 
 # Step 6: emit workstation config + summary
