@@ -1,14 +1,12 @@
 # STATUS.md — AWACS Secure Lab Backup
-**Last updated:** 2026-05-01
-**Updated by:** EOD capture agent (session: 2026-05-01 SAS expiry)
+**Last updated:** 2026-05-08
+**Updated by:** Session 2026-05-08 (SAS rotation + Norton fix)
 
 ---
 
-## System State: DEGRADED ⚠️
+## System State: LIVE ✅
 
-The AWACS secure lab backup system is **deployed but backup pushes are failing.** SAS token expired ~2026-05-01T06:41Z. Every push attempt from DESKTOP-0DBOTVV is returning HTTP 403 on blob write. No alert fired — failure is silent.
-
-**Action required immediately:** Rotate SAS token (command in SAS Token State section below). System returns to LIVE once rotated and verified.
+SAS token rotated 2026-05-08T00:35:57Z. Expiry: **2026-05-14T20:35:40Z**. Backups should resume on next scheduled task run (every 30 min). Norton SSL scanning disabled to unblock Azure CLI — see Known Gotchas.
 
 ---
 
@@ -86,7 +84,7 @@ The AWACS secure lab backup system is **deployed but backup pushes are failing.*
 |------|-------|
 | KV secret name | `current-write-sas` |
 | Length | ~264–270 chars |
-| **Status** | **EXPIRED** — expired ~2026-05-01T06:41–06:43Z |
+| **Status** | **LIVE** — rotated 2026-05-08T00:35:57Z, expires 2026-05-14T20:35:40Z |
 | Permissions | `acw` (add/create/write) |
 | Rotation method | Manual — see `RUNBOOK.md` |
 
