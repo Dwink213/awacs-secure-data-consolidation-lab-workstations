@@ -1,5 +1,115 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+---
+
+## Quick Reference: Development Commands
+
+All scripts require PowerShell 5.1+ and Azure CLI ≥ 2.50.0 with `az bicep install` completed.
+
+**Validate Bicep without deploying:**
+- **Command:** `az bicep build --file deploy/main.bicep`
+- **What it does:** Compiles the orchestrator and all referenced modules; catches output name mismatches and type errors before any Azure calls.
+- **Expected output:** Exits 0 with no output if clean; prints compile errors otherwise.
+
+**Preflight check (run before every fresh deploy):**
+- **Command:** `powershell -ExecutionPolicy Bypass -File deploy/preflight.ps1 -SubscriptionId <sub> -Region eastus2 -Prefix <prefix>`
+- **What it does:** Validates Azure CLI version, Bicep, login state, subscription, identity role, region, prefix format, and resource group availability.
+- **Expected output:** All `[CHECK]` lines print `PASS`; exits 0.
+
+**Full deploy:**
+- **Command:** `powershell -ExecutionPolicy Bypass -File deploy/Deploy.ps1 -SubscriptionId <sub> -Region eastus2 -Prefix <prefix> -ConsumerGroupObjectId <oid>`
+- **What it does:** Runs preflight → creates RG → creates SP with cert → deploys all 8 Bicep components → uploads initial SAS → uploads Automation runbook + schedule → emits workstation config JSON and cert path.
+- **Expected output:** `================== DEPLOY COMPLETE ==================` with resource names and next steps.
+
+**Run the full test battery against a deployed environment:**
+- **Command:** `powershell -ExecutionPolicy Bypass -File deploy/verify.ps1 -ResourceGroup <prefix>-rg`
+- **What it does:** Discovers all `tests/scripts/*.ps1` and runs each against the live RG. Produces a PASS/FAIL table.
+- **Expected output:** Table with Status=PASS for all; exits 0.
+
+**Run a single test:**
+- **Command:** `powershell -ExecutionPolicy Bypass -File tests/scripts/C8_6-sas-expiry-valid.ps1 -ResourceGroup awdust-rg`
+- **What it does:** Runs that one contract check and exits 0 (PASS) or 1 (FAIL).
+- **Expected output:** `[PASS]` / `[FAIL]` lines with detail.
+
+**Trigger SAS rotation manually (and check it worked):**
+- **Command:** `az automation runbook start --resource-group <prefix>-rg --automation-account-name <prefix>-auto-<suffix> --name rotate-sas`
+- **What it does:** Starts a one-off job. Follow with `az automation job list` to confirm Completed, then `tests/scripts/C8_5-last-rotation-ok.ps1` and `C8_6-sas-expiry-valid.ps1` to verify.
+
+**Bootstrap a workstation:**
+- **Command:** `powershell -ExecutionPolicy Bypass -File workstation/bootstrap.ps1 -ConfigPath <prefix>-workstation-config.json -CertPath <prefix>-sp-cert.pem`
+- **What it does:** Installs Az modules at pinned versions, imports cert, copies push script, creates scheduled task.
+
+**Teardown everything:**
+- **Command:** `powershell -ExecutionPolicy Bypass -File deploy/teardown.ps1 -Prefix <prefix> -SubscriptionId <sub>`
+- **What it does:** Deletes the resource group (blocked if immutability retention is still active unless `-ForceTearDownExpiredPolicy` is passed). KV and SA go to soft-delete by default; add `-PurgeSoftDeleted` to hard-delete.
+
+---
+
+## Architecture
+
+### Data flow (three paths)
+
+```
+WRITE PATH (workstation → blob):
+  Workstation (push-files.ps1)
+    → cert auth → Entra ID (SP token)
+    → KV Get Secret (current-write-sas)
+    → Azure Blob PUT via SAS (acw, HTTPS-only, ≤7 days)
+    → WORM container (immutability enforced)
+
+READ PATH (analyst → blob):
+  Consumer workstation
+    → Entra ID (user token)
+    → Azure Blob (Storage Blob Data Reader RBAC — no SAS needed)
+
+ROTATION PATH (automatic, every 6 days):
+  Automation Account MSI
+    → GetUserDelegationKey (Storage Blob Delegator on SA)
+    → New-AzStorageContainerSASToken (acw, 6d 23h)
+    → KV Set Secret (Key Vault Secrets Officer on specific secret resource)
+```
+
+### Key architectural constraints that shape all decisions
+
+- **Shared key is disabled** (`allowSharedKeyAccess: false`) on the storage account. All access is identity-based or SAS-based. This is why SAS tokens are user-delegation type (tied to an MSI principal), not account-key type.
+- **User-delegation SAS has a 7-day Azure hard cap.** The rotator runs on day 6 with a 23-hour overlap. This is why Automation Account exists.
+- **Dynamic VM quota = 0 on personal/PAYG subscriptions** blocks Azure Functions Consumption plan. Automation Account (Free SKU) has no such quota requirement and uses the same MSI model.
+- **Automation Variables (JSON-encoded strings)** supply config to the runbook via `Get-AutomationVariable`. String values require an extra double-quote layer in Bicep: `'"${myVar}"'`.
+- **Two az CLI gaps**: `az automation runbook replace-content` and `az automation jobSchedules create` don't exist. `Deploy.ps1` uses `Invoke-RestMethod` with Bearer token for both.
+
+### Component dependency order
+
+```
+05-log-analytics  ←  everything sends diagnostics here
+01-storage-account  ←  depends on 05
+02-key-vault        ←  depends on 05
+04-immutability-policy  ←  depends on 01
+03-service-principal-auth  ←  depends on 01, 02
+06-rbac-consumer-access    ←  depends on 01
+08-sas-rotator    ←  depends on 01, 02, 05 (Bicep); runbook+schedule created by Deploy.ps1 after Bicep
+```
+
+### Bicep orchestrator vs. imperative steps
+
+`deploy/main.bicep` handles all idempotent infrastructure. `deploy/Deploy.ps1` handles three imperative steps that Bicep cannot: SP creation (`az ad sp create-for-rbac`), initial SAS generation, and Automation runbook/schedule upload (REST API, not Bicep-native).
+
+### Test naming convention
+
+Tests in `tests/scripts/` follow `{prefix}_{N}-description.ps1`:
+- `C` = Component contract test (e.g., `C8_1` = component 08, test 1)
+- `T` = Threat model defense test
+- `I` = Integration test
+- `F` = Failure mode test
+- `D` = Deployment test
+- `W` = Workstation bootstrap test
+- `CIS` = CIS Benchmark compliance test
+
+All tests accept `-ResourceGroup` (mandatory) and `-Prefix` (optional). All import `tests/scripts/_helpers.psm1` for shared `Test-Assert`, `Get-AwacsStorageAccount`, `Get-AwacsAutomationAccount`, etc.
+
+---
+
 ## Project: Secure Data Consolidation from Lab Workstations
 ## Repository: awacs-secure-data-consolidation-lab-workstations
 
