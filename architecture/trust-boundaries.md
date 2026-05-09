@@ -1,6 +1,6 @@
 # Trust Boundaries
 
-This diagram shows trust zones (Z1–Z8 from `threat-model.md` §2), the credentials that cross between them, and the scope of each credential.
+This diagram shows trust zones (Z1–Z9 from `threat-model.md` §2), the credentials that cross between them, and the scope of each credential.
 
 ```mermaid
 flowchart LR
@@ -18,6 +18,7 @@ flowchart LR
     Z5["Z5: Azure Resource Manager"]
     Z6["Z6: Key Vault"]
     Z7["Z7: Storage Account write side"]
+    Z9["Z9: Automation Account\nSystem-assigned MSI (ephemeral, non-exportable)"]
   end
 
   subgraph MED["MEDIUM TRUST"]
@@ -27,9 +28,11 @@ flowchart LR
   Z1 -- "Cert assertion only\n(private key never leaves)" --> Z4
   Z4 -- "Access token (1h)\nscoped to SP" --> Z1
   Z1 -- "Get Secret w/ token\nsingle secret name" --> Z6
-  Z6 -- "Today's SAS\nsp=acw, 24h, 1 container" --> Z1
+  Z6 -- "Today's SAS\nsp=acw, 6d 23h, 1 container" --> Z1
   Z1 -- "PutBlob via SAS\nwrite-only" --> Z7
   Z8 -- "User token\nMFA-backed\nRead-only RBAC" --> Z7
+  Z9 -- "MSI token\nKV Secrets Officer (secret-scoped)\nwrite new SAS every 6d" --> Z6
+  Z9 -- "MSI token\nStorage Blob Data Contributor (container-scoped)\ngenerate user-delegation SAS" --> Z7
   Z7 -. "Diagnostic stream\n(no inbound from Z1)" .-> Z4
 ```
 
@@ -41,7 +44,8 @@ Every credential in the system, by name, by scope, by lifetime, by where it live
 |------------|----------|-------|----------|----------|-------------------|
 | SP cert (.pfx) private key | `Cert:\CurrentUser\My` of lab service account | Authenticate as SP | 90 days | Manual or scripted before expiry | Write-only RBAC limits blast radius; revocable in Entra |
 | SP access token | Process memory only, ≤1h | KV Get Secret + identity | 1 hour | Auto via Entra | Short window, revocable |
-| Daily SAS | Key Vault secret slot | Write-only on one container | 24 hours | Daily, automatic | 24h window, write-only |
+| Rotated SAS | Key Vault secret slot | Write-only on one container | 6d 23h | Every 6 days, automated (component 08) | 6d 23h window, write-only |
+| Automation MSI token | Automation Account runtime (ephemeral) | KV Secrets Officer (secret-scoped) + Storage Blob Data Contributor (container-scoped) | Duration of runbook job (~30s) | Non-exportable; auto-issued per job | Non-exportable; token unusable outside Automation runtime |
 | Consumer user token | Consumer's session | Read-only on container | per Entra session policy | per Entra | Read-only, audited |
 | Storage account key | **Disabled.** Not used. | n/a | n/a | n/a | n/a |
 | KV admin access policy | Operator Entra group, MFA-required | Manage KV | per session | per Entra | Out of band of the lab side |
@@ -56,6 +60,8 @@ The "Storage account key disabled" line is non-trivial. Per CIS 3.x and the thre
 - **Z6 → Z1 (SAS returned):** Bearer SAS string. The most stealable credential in the system. Mitigated by 24h expiry + write-only.
 - **Z1 → Z7 (Put Blob):** Write a blob in one container. Cannot read, cannot delete, cannot list (with appropriate SAS flags).
 - **Z8 → Z7 (Read):** Authenticated user, MFA, read-only RBAC. Audited.
+- **Z9 → Z6 (Set Secret):** Automation MSI writes a new version of `current-write-sas` only. Cannot read other secrets, cannot delete, cannot modify vault config.
+- **Z9 → Z7 (GetUserDelegationKey + generate SAS):** Automation MSI calls the storage data plane to generate a user-delegation SAS. The resulting SAS is immediately written to Z6 — MSI does not retain it.
 
 ## Trust crossings explicitly NOT allowed
 

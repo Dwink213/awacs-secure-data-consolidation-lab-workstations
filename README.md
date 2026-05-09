@@ -14,7 +14,7 @@ The solution:
 
 1. Lab PC pushes files on a 30-minute schedule
 2. Files land in Azure Blob Storage with time-based immutability (90 days default)
-3. Authentication is layered: cert-based Service Principal → Key Vault → daily-rotated SAS → write-only RBAC
+3. Authentication is layered: cert-based Service Principal → Key Vault → automatically rotated SAS → write-only RBAC
 4. Consumers (analysts) read from their own desks via separate RBAC, never touching the lab PC
 
 A 30-second story: ["The cleverest part of this design is that it doesn't use a backup product at all."](./AWACS_design_air-gapped-lab-backup_2026-04-28.md)
@@ -36,7 +36,7 @@ A 30-second story: ["The cleverest part of this design is that it doesn't use a 
 ```
 ./deploy/Deploy.ps1 -SubscriptionId <sub> -Region eastus2 -Prefix awacslab -ConsumerGroupObjectId <group-oid> -AlertEmail ops@example.com
 ```
-**What it does:** preflight → create RG → create SP+cert → deploy Bicep (storage, KV, LA, immutability, RBAC) → seed initial SAS → emit workstation config + cert.
+**What it does:** preflight → create RG → create SP+cert → deploy Bicep (storage, KV, LA, immutability, RBAC, Automation Account) → upload runbook + link schedule → seed initial SAS → emit workstation config + cert.
 **Expected output:** "DEPLOY COMPLETE" banner with paths to `./out/<prefix>-sp-cert-*.pem` and `./out/<prefix>-workstation-config.json` and a clickable Azure portal URL.
 
 ### Bootstrap each lab PC
@@ -74,14 +74,15 @@ On each lab PC, signed in as the dedicated service account:
 ├── RUNBOOK.md                 ← day-2 operations
 ├── threat-model.md            ← Stage 1 artifact; read first
 ├── architecture/              ← Stage 2: 5 mermaid diagrams + README
-├── components/                ← Stage 4: the 7 Atomic Legos
+├── components/                ← Stage 4: the 8 Atomic Legos
 │   ├── 01-storage-account/
 │   ├── 02-key-vault/
 │   ├── 03-service-principal-auth/
 │   ├── 04-immutability-policy/
 │   ├── 05-log-analytics/
 │   ├── 06-rbac-consumer-access/
-│   └── 07-workstation-push-script/
+│   ├── 07-workstation-push-script/
+│   └── 08-sas-rotator/
 ├── workstation/               ← workstation-side scripts + docs
 ├── deploy/                    ← preflight, deploy, verify, teardown
 ├── tests/                     ← Stage 3: test battery (specs + scripts)
@@ -124,7 +125,7 @@ The resource group lives in the deployer's subscription. Storage costs scale wit
 
 This is a v1 design. The Operator and Security Engineer agents flagged the following gaps for v2:
 
-1. **SAS rotator not included.** The deploy seeds an initial 24h SAS but the daily rotator (Azure Function or Logic App) is described in the Key Vault component README and `RUNBOOK.md`, not implemented. Operators can use any scheduled credential refresher.
+1. **SAS rotation is automated** via Azure Automation Account (component 08). The Automation Account's MSI rotates `current-write-sas` every 6 days — 1 day before the Azure-enforced 7-day cap. No operator action required under normal operation. Manual fallback documented in `RUNBOOK.md`.
 2. **Mode B cert distribution (external PKI) is documented but not coded.** Deploy.ps1 currently implements Mode A only.
 3. **Network egress hardening optional.** Default deploy leaves storage + KV public-network-accessible. Private Endpoint is documented in component READMEs as a future hardening.
 4. **Single-region.** No geo-redundant active-active. `Standard_GRS` provides Microsoft-side replication for Storage; KV soft-delete + purge protection covers KV recovery.

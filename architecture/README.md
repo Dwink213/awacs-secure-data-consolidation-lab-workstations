@@ -12,7 +12,7 @@
 
 ## The Atomic Legos
 
-Per CLAUDE.md Rule 2, every component is a single-responsibility independently testable unit. We have **seven**.
+Per CLAUDE.md Rule 2, every component is a single-responsibility independently testable unit. We have **eight**.
 
 | # | Component | Single Responsibility | Trust zone(s) it lives in | Owner agent |
 |---|-----------|----------------------|---------------------------|-------------|
@@ -23,8 +23,9 @@ Per CLAUDE.md Rule 2, every component is a single-responsibility independently t
 | 05 | Log Analytics + Diagnostic Settings | The audit trail. Tamper-evident, separate trust zone. | Outside Z7 | 🔧 |
 | 06 | RBAC for Consumers | Read-only access to the container from analyst desks | Z8 → Z7 | 🏗️ |
 | 07 | Workstation Push Script | The thing on the lab PC. Cert auth, fetch SAS, push files, log. | Z1 | 🔧 |
+| 08 | SAS Rotator | Azure Automation Account + MSI that rotates `current-write-sas` every 6 days | Z9 | 🔧 |
 
-The cloud-side six (01–06) are deployed by `deploy/Deploy.ps1`. The workstation-side one (07) is deployed by running `workstation/bootstrap.ps1` on each lab PC.
+The cloud-side seven (01–06, 08) are deployed by `deploy/Deploy.ps1` (Bicep + post-deploy REST API steps). The workstation-side one (07) is deployed by running `workstation/bootstrap.ps1` on each lab PC.
 
 ## Naming standard
 

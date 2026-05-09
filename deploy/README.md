@@ -1,6 +1,6 @@
 # Deploy
 
-Turnkey deploy/verify/teardown for the cloud-side six components. The workstation-side seventh component is bootstrapped separately (`workstation/bootstrap.ps1`) on each lab PC.
+Turnkey deploy/verify/teardown for the cloud-side seven components (01–06, 08). The workstation-side eighth component is bootstrapped separately (`workstation/bootstrap.ps1`) on each lab PC.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ Turnkey deploy/verify/teardown for the cloud-side six components. The workstatio
 ./deploy/Deploy.ps1 -SubscriptionId <sub> -Region eastus2 -Prefix awacslab -ConsumerGroupObjectId <group-oid> -AlertEmail ops@example.com
 ```
 
-**What it does:** preflight → create RG → create SP+cert → deploy Bicep → generate initial SAS → emit workstation config and cert.
+**What it does:** preflight → create RG → create SP+cert → deploy Bicep (components 01–06, 08) → upload Automation runbook + link 6-day schedule via REST API → generate initial SAS → emit workstation config and cert.
 
 **Expected output:** "DEPLOY COMPLETE" banner with paths to `./out/<prefix>-sp-cert-*.pem` and `./out/<prefix>-workstation-config.json`.
 
@@ -38,7 +38,7 @@ To purge soft-deleted Key Vaults afterward, add `-PurgeSoftDeleted`.
 
 | File | Purpose |
 |------|---------|
-| `main.bicep` | Top-level orchestrator; composes components 01–06 |
+| `main.bicep` | Top-level orchestrator; composes components 01–06, 08 |
 | `preflight.ps1` | Refuses if environment isn't ready |
 | `Deploy.ps1` | The one-command deploy |
 | `verify.ps1` | Runs the executable test battery |

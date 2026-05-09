@@ -26,7 +26,7 @@ flowchart LR
 
   subgraph Z6["Z6: Key Vault"]
     KV[awacslab-kv-xxxx]
-    SAS[Secret: rotated SAS, daily]
+    SAS[Secret: rotated SAS, every 6 days]
   end
 
   subgraph Z7["Z7: Storage Account (write side)"]
@@ -47,6 +47,10 @@ flowchart LR
     USER[Analyst desktop, MFA, individual identity]
   end
 
+  subgraph Z9["Z9: Automation Account (HIGH TRUST)"]
+    AUTO[awdust-auto-ybmh\nSystem-assigned MSI — ephemeral, non-exportable]
+  end
+
   C -->|TLS| NET
   NET -->|cert assertion| AAD
   AAD -->|access token| C
@@ -58,6 +62,9 @@ flowchart LR
   KV -->|diag stream| LA
   AAD -->|sign-in logs| LA
   USER -->|Read RBAC, MFA| SA
+  AUTO -->|MSI: KV Secrets Officer\nwrite new SAS version every 6d| KV
+  AUTO -->|MSI: Storage Blob Data Contributor\ngenerate user-delegation SAS| SA
+  AUTO -->|job logs| LA
 ```
 
 ## What this diagram is saying
@@ -69,6 +76,7 @@ flowchart LR
 5. Once a file is in the container, immutability + versioning keep it durable.
 6. Every step emits diagnostic data to a separate Log Analytics workspace — the lab PC cannot tamper with the audit trail because it has no role on the workspace.
 7. Consumers (analysts at their desks) read from a different trust zone with a different identity. They never touch Z1.
+8. The Automation Account (Z9) rotates the SAS every 6 days using its MSI. The MSI token is ephemeral and non-exportable from the Automation runtime — it cannot be extracted even with admin access to the Automation Account.
 
 ## What this diagram is NOT showing
 

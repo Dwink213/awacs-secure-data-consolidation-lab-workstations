@@ -1,6 +1,6 @@
 # Component Map
 
-How the seven Atomic Legos compose. Each box is one directory under `components/`. Each arrow is a *deployment-time output → input* dependency, except where labeled *runtime*.
+How the eight Atomic Legos compose. Each box is one directory under `components/`. Each arrow is a *deployment-time output → input* dependency, except where labeled *runtime*.
 
 ```mermaid
 flowchart TB
@@ -14,6 +14,10 @@ flowchart TB
     RBAC_W["RBAC: SP → write-only on 01's container"]
     RBAC_KV["RBAC: SP → Get Secret on 02"]
     RBAC_R["06 Consumer RBAC\n(read-only on 01's container)"]
+    ROT["08 SAS Rotator\n(Automation Account + MSI)"]
+    RBAC_ROT_KV["RBAC: MSI → KV Secrets Officer\n(scoped to current-write-sas resource ID)"]
+    RBAC_ROT_SBD["RBAC: MSI → Storage Blob Delegator\n(SA level, to call GetUserDelegationKey)"]
+    RBAC_ROT_W["RBAC: MSI → Storage Blob Data Contributor\n(container level, to generate acw SAS)"]
 
     LA --> SA
     LA --> KV
@@ -23,6 +27,12 @@ flowchart TB
     SP --> RBAC_KV
     KV --> RBAC_KV
     SA --> RBAC_R
+    ROT --> RBAC_ROT_KV
+    KV --> RBAC_ROT_KV
+    ROT --> RBAC_ROT_SBD
+    SA --> RBAC_ROT_SBD
+    ROT --> RBAC_ROT_W
+    SA --> RBAC_ROT_W
   end
 
   subgraph WORKSTATION["Workstation side (bootstrap)"]
@@ -51,7 +61,8 @@ The order matters. The deploy script enforces it:
 5. **03 Service Principal + Cert.** Independent of all of the above on the resource side, but its RBAC assignments depend on SA and KV existing.
 6. **RBAC assignments.** SP → write-only on container, SP → Get Secret on KV.
 7. **06 Consumer RBAC.** SA → read-only for the named consumer security group.
-8. **Initial SAS generation.** Deploy script writes the first daily SAS into the Key Vault secret slot. (Subsequent rotation is by a Function/Logic App or an external scheduled task — see component 02 README.)
+8. **08 SAS Rotator (Automation Account).** Bicep creates the Automation Account and RBAC assignments. `Deploy.ps1` then uploads the runbook content and links the 6-day schedule via REST API (two `az automation` CLI verbs don't exist; Bicep alone cannot upload runbook content).
+9. **Initial SAS generation.** Deploy script writes the first SAS into the Key Vault secret slot so the system works on day one. Subsequent rotation is handled automatically by component 08 every 6 days.
 
 ## Runtime composition
 
@@ -72,5 +83,6 @@ Once deployed, the workstation push (component 07) at every scheduled run:
 - **03 (SP)** — yes, standalone (RBAC assignments are separate Bicep modules)
 - **06 (Consumer RBAC)** — needs 01
 - **07 (Workstation)** — needs 03's cert, 01's account name, 02's vault URL
+- **08 (SAS Rotator)** — needs 01 (storage account name), 02 (KV name + secret resource ID), 05 (LA workspace ID)
 
 The ability to deploy each in isolation is what makes Stage 4 implementation tractable and Stage 6 troubleshooting tractable.

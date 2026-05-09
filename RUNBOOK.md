@@ -104,11 +104,11 @@ az lock create --name awacs-no-delete --resource-group <prefix>-rg --lock-type C
 
 ### A. Push is failing across all workstations
 
-**First check:** Is the SAS in KV recent (within 24h)?
+**First check:** Is the SAS in KV recent (within 7 days) and not expired?
 ```
 az keyvault secret show --vault-name <kv> --name current-write-sas --query attributes.updated -o tsv
 ```
-If older than 24h, run the manual SAS rotation procedure above.
+If older than 7 days, or if the SAS `se=` expiry is in the past, run the manual SAS rotation procedure above.
 
 **Second check:** SP credentials current?
 ```

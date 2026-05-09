@@ -22,6 +22,12 @@ The first-pass executable subset (this commit):
 | `CIS-3_13-storage-logging.ps1` | `05-compliance.md` | CIS-3.13 (wrapper of C5.1) |
 | `CIS-Custom-shared-key.ps1` | `05-compliance.md` | CIS-Custom (wrapper of C1.3) |
 | `D6_3-idempotent.ps1` | `06-deployment.md` | Bicep redeploy is no-op |
+| `C8_1-auto-acct-exists.ps1` | `02-component-contracts.md` | Automation Account exists, Free SKU |
+| `C8_2-auto-msi-enabled.ps1` | `02-component-contracts.md` | System-assigned MSI on |
+| `C8_3-auto-runbook-published.ps1` | `02-component-contracts.md` | rotate-sas runbook is Published |
+| `C8_4-auto-schedule-linked.ps1` | `02-component-contracts.md` | Schedule linked to runbook |
+| `C8_5-last-rotation-ok.ps1` | `02-component-contracts.md` | Last job Completed within 7 days |
+| `C8_6-sas-expiry-valid.ps1` | `02-component-contracts.md` | SAS expiry > 24h from now |
 
 ## What's NOT yet implemented (honest gap)
 

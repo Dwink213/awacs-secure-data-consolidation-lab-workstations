@@ -32,16 +32,11 @@
 
 ## SAS rotation
 
-The SAS is rotated **out-of-band** by an automation runner (Azure Function, Logic App, GitHub Action, or Operator's own scheduled task). This component does NOT include the rotator — that is a Stage-5 wiring concern, captured in `RUNBOOK.md`. The default first-deploy populates `current-write-sas` with a 24-hour SAS so the system works on day one.
+The SAS is rotated automatically by **component 08 (SAS Rotator)** — an Azure Automation Account with a system-assigned MSI. The runbook fires every 6 days (noon UTC), generates a new `acw` user-delegation SAS valid for 6d 23h, and writes it to this secret slot. No operator action required under normal operation.
 
-The rotator's contract:
+The push script (component 07) reads this secret on every run; rotation is fully transparent to the lab PC.
 
-1. Authenticate to Azure as a managed identity or SP with `Storage Account Contributor` (to generate user-delegation SAS).
-2. Generate a new SAS with `sp=acw`, `srt=co`, `se=<now+24h>`.
-3. Update Key Vault secret `current-write-sas` with the new value.
-4. Log the rotation event.
-
-The push script (component 07) reads this secret on every run; rotation is transparent to the lab PC.
+For the manual fallback procedure (if the Automation Account job is failing), see `RUNBOOK.md` §1.
 
 ## Tests
 
