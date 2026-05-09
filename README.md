@@ -2,7 +2,7 @@
 
 A turnkey, deployable solution for backing up files from shared lab workstations to immutable Azure storage, with built-in compliance and governance.
 
-**Status:** Design + IaC + tests complete. Built using AWACS multi-agent methodology (🏗️ Architect, 🛡️ Security Engineer, 🔧 Operator, 📚 Documentarian). See `CLAUDE.md` for the methodology.
+**Status:** Deployed and running in production since 2026-04-30. 97+ blobs pushed and counting. See `docs/deployment-timeline.md` for the forensic deployment record (git + Azure Activity Log + push ledger). Built using AWACS multi-agent methodology (🏗️ Architect, 🛡️ Security Engineer, 🔧 Operator, 📚 Documentarian). See `CLAUDE.md` for the methodology.
 
 ---
 
@@ -87,6 +87,7 @@ On each lab PC, signed in as the dedicated service account:
 ├── deploy/                    ← preflight, deploy, verify, teardown
 ├── tests/                     ← Stage 3: test battery (specs + scripts)
 └── docs/
+    ├── deployment-timeline.md ← forensic record: git + Azure Activity Log + push ledger
     ├── decisions/             ← ADRs
     ├── cross-agent-reviews/   ← (placeholder; capture future disagreements here)
     └── session-notes/         ← per-Claude-Code-session notes
@@ -101,7 +102,7 @@ The full threat model is in `threat-model.md`. Six actors are modeled:
 | Actor | Defense |
 |-------|---------|
 | T1 Insider analyst | Cert in service-account profile, write-only RBAC |
-| T2 Lifted credential | SAS rotates daily, write-only, immutable destination |
+| T2 Lifted credential | SAS rotates every 6 days (automated), write-only, immutable destination |
 | T3 Compromised workstation | Audit trail in separate trust zone, can't tamper |
 | T4 Rogue local admin | Detection: 25h staleness alert from cloud side |
 | T5 Network MITM | TLS 1.2+ enforced, cert-based assertion (no plaintext secret) |
@@ -130,13 +131,15 @@ This is a v1 design. The Operator and Security Engineer agents flagged the follo
 3. **Network egress hardening optional.** Default deploy leaves storage + KV public-network-accessible. Private Endpoint is documented in component READMEs as a future hardening.
 4. **Single-region.** No geo-redundant active-active. `Standard_GRS` provides Microsoft-side replication for Storage; KV soft-delete + purge protection covers KV recovery.
 5. **No Linux lab workstation support.** PowerShell-only push (ADR-002). Adding a `push-files.py` parallel to the .ps1 would not change the cloud side.
-6. **Test scripts are spec-only at present.** The markdown specs in `tests/` are complete. The executable PowerShell counterparts in `tests/scripts/` are stubbed; a future iteration writes them out fully.
+6. **Executable test coverage is partial.** 20 of the ~52 tests in the battery have runnable PowerShell counterparts in `tests/scripts/`. High-value missing scripts: end-to-end push test (`I3_1`), staleness alert check (`F4_1`), and workstation bootstrap tests (`W7_*`). See `tests/scripts/README.md` for the honest gap list.
 
 ---
 
 ## How this was built
 
 This repo was built using the AWACS multi-agent methodology — four named agents (Architect, Security Engineer, Operator, Documentarian) review every significant decision, with disagreements surfaced explicitly rather than flattened into consensus. See `CLAUDE.md` for the methodology. Per-session notes in `docs/session-notes/` show the agents working in real time.
+
+The system is live: `docs/deployment-timeline.md` is a forensic record of the deployment — every Azure Activity Log event, every git commit, and every workstation push from repository creation to production operation, with real timestamps sourced directly from git history and Azure. The repo was created on 2026-04-29; the first production blob was pushed ~31 hours later.
 
 ---
 
