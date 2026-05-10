@@ -85,6 +85,46 @@ A future automation hardening: have the cert rotator post a new cert into a side
 powershell.exe -NoProfile -File C:\ProgramData\AwacsBackup\push-files.ps1 -Verbose
 ```
 
+## 10. Azure CLI fails with "SSL: CERTIFICATE_VERIFY_FAILED" (Antivirus TLS Interception)
+
+**Symptom:** `az keyvault secret show` (or any Azure CLI call) fails with:
+```
+[SSL: CERTIFICATE_VERIFY_FAILED] unable to get local issuer certificate
+```
+PowerShell (`Invoke-WebRequest`) succeeds to the same endpoints. The `az account show` command may return cached credentials and appear to succeed even when SSL is broken.
+
+**Diagnosis:** An endpoint protection product (Norton, Zscaler, Netskope, Symantec BlueCoat) is intercepting HTTPS traffic and re-signing it with a self-generated root CA. Windows trusts this cert because the AV pushed it to the Windows Certificate Store during installation. Azure CLI's bundled Python uses its own `certifi` CA bundle — which knows nothing about the AV root. Two trust stores, one host, different answers.
+
+**Distinguish it from a real cert problem:**
+```powershell
+# Check what cert is being presented to an Azure endpoint via .NET (Windows store)
+$req = [System.Net.HttpWebRequest]::Create("https://login.microsoftonline.com")
+$req.Timeout = 10000; $req.AllowAutoRedirect = $false
+try { $req.GetResponse().Close() } catch {}
+$cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]$req.ServicePoint.Certificate
+Write-Host "Issuer: $($cert.Issuer)"
+# If issuer shows "Norton Web/Mail Shield Root" or your AV vendor name — confirmed interception
+```
+
+**Fix (quickest — add exclusions to the AV SSL scanner):**
+
+Add the following domains to your antivirus product's SSL scanning exclusion list:
+1. `login.microsoftonline.com`
+2. `*.vault.azure.net`
+3. `management.azure.com`
+4. `*.blob.core.windows.net`
+5. `*.core.windows.net`
+
+After adding exclusions, restart any open terminals and retry.
+
+**Fix (alternative — disable SSL scanning entirely for Azure CLI scope):**
+
+If your AV product doesn't support per-domain exclusions, disabling SSL scanning for the Azure CLI Python process is the fallback. In Norton: Settings → Firewall → Advanced Settings → Smart Firewall → SSL → disable for affected scope.
+
+**Why this happens on the workstation but not the deploy host:** The deploy host may not have endpoint protection installed, or its AV product may not intercept the Azure CLI process. Lab workstations with managed AV policies hit this frequently.
+
+**Note:** This was encountered on DESKTOP-0DBOTVV on 2026-05-08 (Norton 360 Web/Mail Shield). The incident delayed SAS rotation by 6+ hours. This gotcha is documented in `daily-captures/AWACS_daily-capture_2026-05-08_norton-tls-interception.md`.
+
 ## When in doubt
 
 - `Get-Content C:\ProgramData\AwacsBackup\logs\push-$(Get-Date -Format yyyy-MM-dd).log -Tail 50`

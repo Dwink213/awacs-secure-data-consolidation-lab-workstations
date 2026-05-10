@@ -1,6 +1,6 @@
 # STATUS.md — AWACS Secure Lab Backup
-**Last updated:** 2026-05-08
-**Updated by:** Session 2026-05-08-s2 (component 08 build + IaC cleanup)
+**Last updated:** 2026-05-10
+**Updated by:** 2026-05-10 finalization session (Stage 5 closure)
 
 ---
 
@@ -23,7 +23,7 @@ SAS token rotated by Automation Account `awdust-auto-ybmh` on 2026-05-08T21:41:0
 | Scheduled task (`AwacsBackupPush`) | ✅ Working | Every 30 min, Interactive logon, DESKTOP-0DBOTVV |
 | Push script (`workstation/push-files.ps1`) | ✅ Working | SAS rotated; HTTP 403 resolved |
 | SAS rotation automation (`awdust-auto-ybmh`) | ✅ Working | Job 45bb7628 succeeded; next run ~2026-05-14 noon UTC |
-| Test battery (11/11 executable scripts) | ✅ Passing | Storage hardening, KV hardening, immutability, diag, consumer RBAC |
+| Test battery (20/20 executable scripts) | ✅ Passing | Storage hardening, KV hardening, immutability, diag, consumer RBAC, C8 rotation checks |
 | End-to-end cert → SAS → blob flow | ✅ Verified | REST PUT 201; 97 blobs confirmed in container |
 
 ---
@@ -34,7 +34,7 @@ SAS token rotated by Automation Account `awdust-auto-ybmh` on 2026-05-08T21:41:0
 |------|--------|-------|
 | Test specs 12–52 | ⚠️ Spec-only | 38 of 52 test specs have no executable script; runnable subset covers most load-bearing checks |
 | Multi-workstation isolation | ⚠️ One workstation tested | DESKTOP-0DBOTVV only; second workstation bootstrap not yet run |
-| `deploy/preflight.sh` / `verify.sh` / `teardown.sh` | ⚠️ Present but Windows-focused | `.sh` wrappers exist; `.ps1` versions are the primary path |
+| `deploy/preflight.sh` / `verify.sh` / `teardown.sh` | ⚠️ Not present | Deploy toolchain is Windows-primary; `.ps1` versions are the authoritative path. `.sh` wrappers are a v2 item. |
 
 ---
 
@@ -126,8 +126,10 @@ Manual rotation is a fallback procedure only. If the Automation job fails, see `
 |---------|------|-------------|
 | Autonomous overnight run | 2026-04-30 | Full IaC + tests + docs authored |
 | Live deployment | 2026-04-30 | RG deployed, tests passing, bootstrap complete, 78/78 push verified |
-| SAS expiry / idle cron | 2026-05-01 | SAS expired; system DEGRADED; rotation pending; gap documented |
-| Norton TLS fix + manual SAS rotation | 2026-05-08 | Norton SSL interception diagnosed; token rotated manually; system LIVE |
-| Component 08 build (SAS rotator) | 2026-05-08 | Azure Automation Account deployed; runbook tested (job 45bb7628); IaC cleaned up |
+| SAS expiry / silent failure | 2026-05-01 | SAS expired; system DEGRADED; silent 403 failure mode documented; rotation pending |
+| Norton TLS fix + manual SAS rotation | 2026-05-08-s1 | Norton SSL interception diagnosed; token rotated manually; system LIVE |
+| Component 08 build (SAS rotator) | 2026-05-08-s2 | Azure Automation Account deployed; runbook tested (job 45bb7628); IaC reconciled |
+| Doc audit + P1/P2 closure | 2026-05-09 | IaC-Reality Inversion in ADR-008 found and corrected; all stale refs fixed |
+| Stage 5 finalization | 2026-05-10 | Session notes written; STATUS.md corrected; cross-agent review completed |
 
-Full session notes: `docs/session-notes/SESSION_2026-04-30.md`
+Full session notes: `docs/session-notes/`
