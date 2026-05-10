@@ -13,7 +13,7 @@ This document is a verbatim record of the system building itself. Every timestam
 
 | Timestamp (Local EDT) | Commit | Event |
 |---|---|---|
-| `2026-04-29 00:00:32 -0400` | `ebc88a72` | **Repository created** — initial commit, LICENSE only. Author: Dwink213 / dwinkler213@gmail.com |
+| `2026-04-29 00:00:32 -0400` | `ebc88a72` | **Repository created** — initial commit, LICENSE only. Author: Dwink213 / Dustin@AWACS.ai |
 | `2026-04-30 00:25:40 -0400` | `06ba269e` | Full Stage 1–5 design committed overnight — threat model, architecture, all five Mermaid diagrams, test battery, all components, deploy scripts, workstation artifacts |
 | `2026-04-30 01:43:37 -0400` | `371a4aaa` | IaC and test bugs found during first live deploy — corrected and committed |
 | `2026-04-30 02:17:27 -0400` | `5d42d932` | Second wave of live-deploy bugs fixed |

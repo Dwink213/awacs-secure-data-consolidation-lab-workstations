@@ -12,7 +12,7 @@ This document is a verbatim record of the system building itself. Every timestam
 
 ## Phase 0: Repository Creation
 
-- 2026-04-29 00:00:32 EDT — commit ebc88a72 — Repository created, initial commit, LICENSE only. Author: Dwink213 / dwinkler213@gmail.com
+- 2026-04-29 00:00:32 EDT — commit ebc88a72 — Repository created, initial commit, LICENSE only. Author: Dwink213 / Dustin@AWACS.ai
 
 - 2026-04-30 00:25:40 EDT — commit 06ba269e — Full Stage 1–5 design committed overnight: threat model, architecture, all five Mermaid diagrams, test battery, all components, deploy scripts, workstation artifacts
 
