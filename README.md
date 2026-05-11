@@ -133,6 +133,10 @@ This is a v1 design. The Operator and Security Engineer agents flagged the follo
 5. **No Linux lab workstation support.** PowerShell-only push (ADR-002). Adding a `push-files.py` parallel to the .ps1 would not change the cloud side.
 6. **Executable test coverage is partial.** 20 of the ~52 tests in the battery have runnable PowerShell counterparts in `tests/scripts/`. High-value missing scripts: end-to-end push test (`I3_1`), staleness alert check (`F4_1`), and workstation bootstrap tests (`W7_*`). See `tests/scripts/README.md` for the honest gap list.
 
+The initial v1 deploy seeded a 24-hour SAS token but did not include automated rotation. The token expired on 2026-05-01 and pushes silently failed for 6 days 17 hours before rotation was performed manually on 2026-05-08. A subsequent autonomous Claude Code session deployed an Azure Automation Account with a scheduled PowerShell runbook; the first scheduled rotation fired on 2026-05-09 without intervention. See ADR-008 and `docs/deployment-timeline.md` Phase 6.
+
+This is a v1 implementation for a specific scenario. Not designed as a general-purpose backup product. Forks welcome.
+
 ---
 
 ## How this was built
