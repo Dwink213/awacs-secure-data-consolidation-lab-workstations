@@ -4,6 +4,8 @@ A turnkey, deployable solution for backing up files from shared lab workstations
 
 **Status:** Deployed and running in production since 2026-04-30. 97+ blobs pushed and counting. See `docs/deployment-timeline.md` for the forensic deployment record (git + Azure Activity Log + push ledger). Built using AWACS multi-agent methodology (🏗️ Architect, 🛡️ Security Engineer, 🔧 Operator, 📚 Documentarian). See `CLAUDE.md` for the methodology.
 
+**Evaluating fit for an AI engineering role?** See [`docs/evaluator-guide.md`](./docs/evaluator-guide.md) — a structured prompt and reading path that gets you a substantive answer in 5 minutes.
+
 ---
 
 ## What this is
