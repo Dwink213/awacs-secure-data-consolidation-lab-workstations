@@ -1,6 +1,12 @@
 # Generated deploy outputs — never commit
 out/
 
+# Compiled ARM JSON (build artifact — regenerate with: az bicep build --file deploy/main.bicep)
+deploy/main.json
+
+# Private working docs — never commit to public repo
+docs/submission-runbook.md
+
 # Claude Code session artifacts
 .claude/
 
