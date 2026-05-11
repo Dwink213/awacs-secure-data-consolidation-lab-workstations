@@ -1,10 +1,38 @@
 # AWACS Secure Data Consolidation — Lab Workstations
 
-A turnkey, deployable solution for backing up files from shared lab workstations to immutable Azure storage, with built-in compliance and governance.
+This repo is an end-to-end AI-assisted infrastructure project demonstrating structured multi-agent design, test-first IaC discipline, and real Azure production deployment — with honest incident documentation of what broke and how it was fixed. The technical artifact is a secure backup system for shared lab workstations. The engineering story is how a multi-agent AI workflow designed, built, deployed, and operated it.
 
-**Status:** Deployed and running in production since 2026-04-30. 97+ blobs pushed and counting. See `docs/deployment-timeline.md` for the forensic deployment record (git + Azure Activity Log + push ledger). Built using AWACS multi-agent methodology (🏗️ Architect, 🛡️ Security Engineer, 🔧 Operator, 📚 Documentarian). See `CLAUDE.md` for the methodology.
+**Status:** Live in production since 2026-04-30. A lab workstation pushes files every 30 minutes. SAS token rotates automatically every 6 days via Azure Automation Account — running without manual intervention since 2026-05-09. 97+ blobs in immutable storage and counting. See `docs/deployment-timeline.md` for the forensic record (Azure Activity Log + git + push ledger).
 
 **Evaluating fit for an AI engineering role?** See [`docs/evaluator-guide.md`](./docs/evaluator-guide.md) — a structured prompt and reading path that gets you a substantive answer in 5 minutes.
+
+---
+
+## How this was built
+
+### The methodology
+
+The AWACS multi-agent methodology uses four defined agent roles — 🏗️ Architect, 🛡️ Security Engineer, 🔧 Operator, 📚 Documentarian — each reviewing design decisions from their domain. Claude Code sessions operate with a structured system prompt that activates all four voices. Disagreements are surfaced explicitly and captured in `docs/cross-agent-reviews/` rather than resolved into consensus prose. Every non-obvious architectural choice has a decision record in `docs/decisions/` with alternatives considered, trade-offs accepted, and agents who signed off. See `CLAUDE.md` for the full methodology specification.
+
+### The 31-hour autonomous build
+
+Stages 1–5 (threat model → architecture → test battery → 8-component IaC → deploy/verify/teardown scripts + workstation bootstrap) ran autonomously over 31+ hours in a single Claude Code session on 2026-04-30. No stage gate was skipped without explicit user authorization.
+
+One concrete example of how agent disagreement shaped the design: when the SAS rotation component (component 08) was planned, the Architect proposed Azure Functions (Consumption plan) as the runtime. The Security Engineer reviewed the MSI trust model; the Operator flagged the quota dependency. At deploy time, the Consumption plan hit a Dynamic VM quota of 0 on a personal Azure subscription — the runtime container provisioned but could not start. The pivot to Azure Automation Account (same MSI model, no quota requirement, Free SKU at $0/month) happened in the same session. ADR-008 captures both the quota failure and the rationale for the pivot, with all four agent positions documented. See `docs/decisions/ADR-008-sas-rotation-automation.md`.
+
+### Where human judgment was required
+
+Three moments where human intervention corrected the AI system — each documented in real time in `daily-captures/`:
+
+1. **SAS expiry (2026-05-01):** The automated system had no alerting for token expiry. The push script exited 0 even when all blob writes returned HTTP 403. The failure was undetectable from Task Scheduler's "Last Run Result" field. Human operator detected it 6 days 17 hours later via session memory, not monitoring. This failure motivated component 08.
+
+2. **Norton TLS interception (2026-05-08):** Azure CLI was failing with SSL certificate errors. The AI correctly diagnosed two separate trust stores (Windows Certificate Store vs. Python's certifi bundle) — but resolving it required a human operator to navigate the antivirus UI and add Azure domains to the SSL scanning exclusion list. The diagnostic commands are preserved in `workstation/troubleshooting.md §10`.
+
+3. **IaC-Reality Inversion (2026-05-09):** A brutal critic audit found ADR-008 had its Decision and Alternatives sections inverted — it documented Azure Functions as chosen and Automation Account as rejected, the exact inverse of what was deployed. The AI had documented the plan, not the pivot. Human review caught and corrected it. The pattern is now a named anti-pattern in `daily-captures/AWACS_daily-capture_2026-05-09_iac-reality-inversion-pattern.md`.
+
+### Deployment evidence
+
+`docs/deployment-timeline.md` is sourced from Azure Activity Log events, git commit timestamps, and the workstation push ledger — independently verifiable, not self-reported. It shows three full deploy/teardown/redeploy cycles, the 2026-05-01 SAS expiry incident, and the Automation Account deployment that automated rotation. The first scheduled rotation fired 2026-05-09; the system has operated without manual intervention since.
 
 ---
 
@@ -94,6 +122,7 @@ On each lab PC, signed in as the dedicated service account:
 │                                 the output.
 └── docs/
     ├── deployment-timeline.md ← forensic record: git + Azure Activity Log + push ledger
+    ├── evaluator-guide.md     ← structured evaluation prompt for AI engineering role fit
     ├── decisions/             ← ADRs
     ├── cross-agent-reviews/   ← CAR-001 final Stage 5 sign-off; capture future disagreements here
     └── session-notes/         ← per-Claude-Code-session notes
@@ -128,28 +157,19 @@ The resource group lives in the deployer's subscription. Storage costs scale wit
 
 ---
 
-## Limitations honestly named
+## Known gaps (v2 backlog)
 
-This is a v1 design. The Operator and Security Engineer agents flagged the following gaps for v2:
+This is a v1 design for a specific scenario. The following are acknowledged gaps, not blockers — the system is in production and operating correctly without them.
 
-1. **SAS rotation is automated** via Azure Automation Account (component 08). The Automation Account's MSI rotates `current-write-sas` every 6 days — 1 day before the Azure-enforced 7-day cap. No operator action required under normal operation. Manual fallback documented in `RUNBOOK.md`.
-2. **Mode B cert distribution (external PKI) is documented but not coded.** Deploy.ps1 currently implements Mode A only.
-3. **Network egress hardening optional.** Default deploy leaves storage + KV public-network-accessible. Private Endpoint is documented in component READMEs as a future hardening.
-4. **Single-region.** No geo-redundant active-active. `Standard_GRS` provides Microsoft-side replication for Storage; KV soft-delete + purge protection covers KV recovery.
-5. **No Linux lab workstation support.** PowerShell-only push (ADR-002). Adding a `push-files.py` parallel to the .ps1 would not change the cloud side.
-6. **Executable test coverage is partial.** 20 of the ~52 tests in the battery have runnable PowerShell counterparts in `tests/scripts/`. High-value missing scripts: end-to-end push test (`I3_1`), staleness alert check (`F4_1`), and workstation bootstrap tests (`W7_*`). See `tests/scripts/README.md` for the honest gap list.
+1. **Mode B cert distribution (external PKI) is documented but not coded.** Deploy.ps1 implements Mode A (self-signed cert generated at deploy time). Mode B (operator-supplied cert from internal PKI) is the hardened path documented in ADR-003.
+2. **Network egress hardening optional.** Default deploy leaves storage + KV public-network-accessible. Private Endpoint is documented in component READMEs as a future hardening step.
+3. **Single-region.** No geo-redundant active-active. `Standard_GRS` provides Microsoft-side replication for Storage; KV soft-delete + purge protection covers KV recovery.
+4. **No Linux lab workstation support.** PowerShell-only push (ADR-002). Adding a `push-files.py` parallel to the .ps1 would not change the cloud side.
+5. **Executable test coverage is partial.** 20 of the ~52 tests in the battery have runnable PowerShell counterparts in `tests/scripts/`. The full battery is specified; high-value missing scripts include end-to-end push (`I3_1`), staleness alert (`F4_1`), and workstation bootstrap (`W7_*`). See `tests/scripts/README.md`.
 
-The initial v1 deploy seeded a 24-hour SAS token but did not include automated rotation. The token expired on 2026-05-01 and pushes silently failed for 6 days 17 hours before rotation was performed manually on 2026-05-08. A subsequent autonomous Claude Code session deployed an Azure Automation Account with a scheduled PowerShell runbook; the first scheduled rotation fired on 2026-05-09 without intervention. See ADR-008 and `docs/deployment-timeline.md` Phase 6.
+The initial v1 deploy used a short-lived SAS token and did not include automated rotation. The token expired on 2026-05-01 and pushes silently failed for 6 days 17 hours — diagnosed via session memory, not monitoring. On 2026-05-08 an Azure Automation Account was deployed with a scheduled PowerShell runbook (component 08). The first automated rotation fired 2026-05-09. The system has run without manual SAS intervention since. See ADR-008 and `docs/deployment-timeline.md` Phase 6.
 
-This is a v1 implementation for a specific scenario. Not designed as a general-purpose backup product. Forks welcome.
-
----
-
-## How this was built
-
-This repo was built using the AWACS multi-agent methodology — four named agents (Architect, Security Engineer, Operator, Documentarian) review every significant decision, with disagreements surfaced explicitly rather than flattened into consensus. See `CLAUDE.md` for the methodology. Per-session notes in `docs/session-notes/` show the agents working in real time.
-
-The system is live: `docs/deployment-timeline.md` is a forensic record of the deployment — every Azure Activity Log event, every git commit, and every workstation push from repository creation to production operation, with real timestamps sourced directly from git history and Azure. The repo was created on 2026-04-29; the first production blob was pushed ~31 hours later.
+Not designed as a general-purpose backup product. Forks welcome.
 
 ---
 
