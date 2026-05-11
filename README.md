@@ -86,10 +86,14 @@ On each lab PC, signed in as the dedicated service account:
 ├── workstation/               ← workstation-side scripts + docs
 ├── deploy/                    ← preflight, deploy, verify, teardown
 ├── tests/                     ← Stage 3: test battery (specs + scripts)
+├── daily-captures/            ← session-by-session methodology and content captures
+│                                 showing real-time decisions, failure modes, and reasoning
+│                                 as the system was built. Evidence of the process, not just
+│                                 the output.
 └── docs/
     ├── deployment-timeline.md ← forensic record: git + Azure Activity Log + push ledger
     ├── decisions/             ← ADRs
-    ├── cross-agent-reviews/   ← (placeholder; capture future disagreements here)
+    ├── cross-agent-reviews/   ← CAR-001 final Stage 5 sign-off; capture future disagreements here
     └── session-notes/         ← per-Claude-Code-session notes
 ```
 

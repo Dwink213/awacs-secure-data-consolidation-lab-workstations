@@ -1,8 +1,9 @@
 # Air-Gapped Lab Workstation Backup → Immutable Azure Blob
 
 **Captured:** 2026-04-28
-**Status:** Design captured tonight from phone-call relisten + interview prep brain dump
-**Implementation status:** Design phase, auth model finalized as layered (cert-based SP + rotated SAS). Need to confirm whether shipped to production or stayed at design.
+**Outcome:** This design shipped. The full IaC, test battery, and workstation bootstrap were built autonomously over a 31-hour Claude Code session starting 2026-04-30, with one additional component (automated SAS rotation) added 2026-05-08. The system has been in production since 2026-04-30 with 97+ blobs verified.
+
+This document is the inception artifact — the design thinking captured before the build. It shows the problem framing, the auth options considered and rejected, and the reasoning that drove the layered credential architecture. The `Interview-frame version` section at the bottom is how this design was being articulated at the time; the full build is the proof it held up.
 
 ---
 
